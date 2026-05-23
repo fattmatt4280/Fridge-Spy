@@ -196,6 +196,8 @@ function AddPage() {
       </button>
 
       <style>{`.input{width:100%;border-radius:0.75rem;border:1px solid var(--color-border);background:var(--color-surface);padding:0.75rem 1rem;outline:none;}.input:focus{border-color:var(--color-primary)}`}</style>
+
+      <UpgradeModal reason={gate.reason} onClose={gate.close} />
     </div>
   );
 }

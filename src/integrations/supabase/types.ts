@@ -14,7 +14,204 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      activity_log: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          message: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          message: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          message?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      items: {
+        Row: {
+          added_date: string
+          barcode: string | null
+          brand: string | null
+          category: string | null
+          created_at: string
+          emoji: string | null
+          expiry_date: string | null
+          id: string
+          image_url: string | null
+          location: string
+          name: string
+          notes: string | null
+          quantity: number
+          unit: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          added_date?: string
+          barcode?: string | null
+          brand?: string | null
+          category?: string | null
+          created_at?: string
+          emoji?: string | null
+          expiry_date?: string | null
+          id?: string
+          image_url?: string | null
+          location?: string
+          name: string
+          notes?: string | null
+          quantity?: number
+          unit?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          added_date?: string
+          barcode?: string | null
+          brand?: string | null
+          category?: string | null
+          created_at?: string
+          emoji?: string | null
+          expiry_date?: string | null
+          id?: string
+          image_url?: string | null
+          location?: string
+          name?: string
+          notes?: string | null
+          quantity?: number
+          unit?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          fridgespy_score: number
+          id: string
+          items_saved_this_week: number
+          onboarded: boolean
+          premium_user: boolean
+          streak_days: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          fridgespy_score?: number
+          id?: string
+          items_saved_this_week?: number
+          onboarded?: boolean
+          premium_user?: boolean
+          streak_days?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          fridgespy_score?: number
+          id?: string
+          items_saved_this_week?: number
+          onboarded?: boolean
+          premium_user?: boolean
+          streak_days?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      recipes: {
+        Row: {
+          difficulty: string | null
+          favorite: boolean
+          id: string
+          ingredients: Json
+          instructions: Json
+          missing_ingredients: Json | null
+          prep_time: string | null
+          saved_date: string
+          title: string
+          user_id: string
+          uses_items: Json | null
+        }
+        Insert: {
+          difficulty?: string | null
+          favorite?: boolean
+          id?: string
+          ingredients?: Json
+          instructions?: Json
+          missing_ingredients?: Json | null
+          prep_time?: string | null
+          saved_date?: string
+          title: string
+          user_id: string
+          uses_items?: Json | null
+        }
+        Update: {
+          difficulty?: string | null
+          favorite?: boolean
+          id?: string
+          ingredients?: Json
+          instructions?: Json
+          missing_ingredients?: Json | null
+          prep_time?: string | null
+          saved_date?: string
+          title?: string
+          user_id?: string
+          uses_items?: Json | null
+        }
+        Relationships: []
+      }
+      shopping_list: {
+        Row: {
+          category: string | null
+          checked: boolean
+          created_at: string
+          id: string
+          name: string
+          quantity: number | null
+          source: string
+          unit: string | null
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          checked?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          quantity?: number | null
+          source?: string
+          unit?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          checked?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          quantity?: number | null
+          source?: string
+          unit?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

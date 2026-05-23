@@ -53,7 +53,7 @@ function HomePage() {
     return d !== null && d < 0;
   });
 
-  if (!user) return null;
+  // Guests (no user) still see the home shell with empty data.
 
   return (
     <div className="px-4 pt-[max(env(safe-area-inset-top),1rem)]">

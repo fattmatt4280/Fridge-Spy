@@ -65,7 +65,7 @@ function ShoppingPage() {
   });
 
   async function share() {
-    const text = items.filter(i => !i.checked).map(i => `• ${i.name}${((i.quantity ?? 1)>1)?` x${i.quantity ?? 1}`:""}`).join("\n");
+    const text = items.filter(i => !i.checked).map(i => { const q = i.quantity ?? 1; return `• ${i.name}${q>1?` x${q}`:""}`; }).join("\n");
     if (navigator.share) {
       try { await navigator.share({ title: "FridgeSpy shopping list", text }); } catch {}
     } else {

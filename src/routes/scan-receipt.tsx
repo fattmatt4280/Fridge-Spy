@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useRef, useState } from "react";
-import { ArrowLeft, Camera, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, Camera, Loader2, Lock } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { scanReceipt } from "@/lib/claude.functions";
@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { isoDateInDays, categoryEmoji, suggestExpiryDays } from "@/lib/expiry";
 import { toast } from "sonner";
+import { usePremium, useUpgradeGate } from "@/hooks/usePremium";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 export const Route = createFileRoute("/scan-receipt")({
   head: () => ({ meta: [{ title: "Snap Receipt — FridgeSpy" }] }),

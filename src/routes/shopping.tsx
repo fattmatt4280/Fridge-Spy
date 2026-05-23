@@ -162,14 +162,14 @@ function ShoppingPage() {
               <h2 className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">{g.section}</h2>
               <ul className="overflow-hidden rounded-2xl border border-border bg-surface divide-y divide-border">
                 {g.items.map(i => (
-                  <li key={i.id} className="flex items-center gap-3 px-3 py-3">
+                  <li key={i.id} className={`flex items-center gap-3 px-3 ${storeMode ? "py-5" : "py-3"}`}>
                     <input type="checkbox" checked={i.checked} onChange={e => toggle.mutate({ id: i.id, checked: e.target.checked })}
-                      className="h-5 w-5 accent-[color:var(--color-primary)]" />
-                    <span className={`flex-1 text-sm ${i.checked ? "text-muted-foreground line-through" : ""}`}>
+                      className={`${storeMode ? "h-7 w-7" : "h-5 w-5"} accent-[color:var(--color-primary)]`} />
+                    <span className={`flex-1 ${storeMode ? "text-lg font-semibold" : "text-sm"} ${i.checked ? "text-muted-foreground line-through" : ""}`}>
                       {i.name}{(i.quantity ?? 1) > 1 ? ` × ${i.quantity ?? 1}` : ""}
                     </span>
                     <button onClick={() => remove.mutate(i.id)} className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
-                      <Trash2 size={16}/>
+                      <Trash2 size={storeMode ? 20 : 16}/>
                     </button>
                   </li>
                 ))}

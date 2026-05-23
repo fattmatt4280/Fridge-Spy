@@ -19,6 +19,8 @@ function AddPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const qc = useQueryClient();
+  const { isPremium, itemsLeft } = usePremium();
+  const gate = useUpgradeGate();
   const [tab, setTab] = useState<"manual" | "barcode">("manual");
 
   // Manual / search state

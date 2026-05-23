@@ -1,12 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { ArrowLeft, Camera, Upload, Loader2 } from "lucide-react";
+import { ArrowLeft, Camera, Loader2 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { scanReceipt } from "@/lib/claude.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { isoDateInDays, categoryEmoji } from "@/lib/expiry";
+import { isoDateInDays, categoryEmoji, suggestExpiryDays } from "@/lib/expiry";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/scan-receipt")({
@@ -14,7 +14,16 @@ export const Route = createFileRoute("/scan-receipt")({
   component: ScanReceiptPage,
 });
 
-type ParsedItem = { name: string; quantity: number; unit?: string; category?: string; expiry_days?: number; emoji?: string; _keep?: boolean };
+type ParsedItem = {
+  name: string;
+  quantity: number;
+  unit?: string;
+  category?: string;
+  estimated_expiry_days?: number;
+  expiry_days?: number;
+  emoji?: string;
+  _keep?: boolean;
+};
 
 function ScanReceiptPage() {
   const fileRef = useRef<HTMLInputElement>(null);
@@ -39,6 +48,10 @@ function ScanReceiptPage() {
     onError: (e: any) => toast.error(e.message ?? "Scan failed"),
   });
 
+  function daysFor(i: ParsedItem) {
+    return i.estimated_expiry_days ?? i.expiry_days ?? suggestExpiryDays(i.category, i.name);
+  }
+
   const save = useMutation({
     mutationFn: async () => {
       if (!user || !items) return;
@@ -48,9 +61,9 @@ function ScanReceiptPage() {
         category: i.category ?? null,
         emoji: i.emoji ?? categoryEmoji(i.name, i.category),
         quantity: i.quantity ?? 1,
-        unit: i.unit ?? "unit",
+        unit: i.unit ?? "each",
         location: "fridge",
-        expiry_date: isoDateInDays(i.expiry_days ?? 7),
+        expiry_date: isoDateInDays(daysFor(i)),
       }));
       if (!rows.length) throw new Error("Nothing selected");
       const { error } = await supabase.from("items").insert(rows);
@@ -58,11 +71,12 @@ function ScanReceiptPage() {
       await supabase.from("activity_log").insert({
         user_id: user.id, kind: "receipt", message: `Added ${rows.length} items from a receipt`,
       });
+      return rows.length;
     },
-    onSuccess: () => {
+    onSuccess: (n) => {
       qc.invalidateQueries({ queryKey: ["items"] });
       qc.invalidateQueries({ queryKey: ["activity"] });
-      toast.success("Items added to inventory");
+      toast.success(`Added ${n} items to inventory`);
       navigate({ to: "/inventory" });
     },
     onError: (e: any) => toast.error(e.message),
@@ -73,6 +87,8 @@ function ScanReceiptPage() {
     setItems(null);
     scan.mutate(f);
   }
+
+  const keepCount = items?.filter(i => i._keep).length ?? 0;
 
   return (
     <div className="px-4 pt-[max(env(safe-area-inset-top),1rem)]">
@@ -88,7 +104,7 @@ function ScanReceiptPage() {
         <div className="mt-4 flex flex-col items-center gap-4">
           <div className="aspect-[3/4] w-full max-w-xs rounded-3xl border-2 border-dashed border-border bg-surface/40 p-6 text-center">
             <div className="flex h-full flex-col items-center justify-center gap-3 text-muted-foreground">
-              <Receipt />
+              <span className="text-5xl">🧾</span>
               <p className="text-sm">Snap a clear photo of your grocery receipt.</p>
             </div>
           </div>
@@ -115,7 +131,7 @@ function ScanReceiptPage() {
           {items && (
             <div className="mt-4">
               <div className="mb-2 flex items-center justify-between">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Detected items ({items.filter(i=>i._keep).length})</h2>
+                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Detected items ({keepCount})</h2>
                 <button onClick={() => fileRef.current?.click()} className="text-xs font-semibold text-primary">Retake</button>
               </div>
               <ul className="space-y-1.5">
@@ -128,16 +144,16 @@ function ScanReceiptPage() {
                     <div className="flex-1">
                       <input value={it.name} onChange={e => setItems(arr=>arr!.map((x,i)=>i===idx?{...x,name:e.target.value}:x))}
                         className="w-full bg-transparent text-sm font-semibold outline-none" />
-                      <div className="text-xs text-muted-foreground">{it.category ?? "—"} · expires in {it.expiry_days ?? 7}d</div>
+                      <div className="text-xs text-muted-foreground">{it.category ?? "—"} · expires in {daysFor(it)}d</div>
                     </div>
                     <input type="number" min={0} value={it.quantity} onChange={e=>setItems(arr=>arr!.map((x,i)=>i===idx?{...x,quantity:Number(e.target.value)}:x))}
                       className="w-14 rounded-md border border-border bg-background/40 px-2 py-1 text-center text-sm" />
                   </li>
                 ))}
               </ul>
-              <button disabled={save.isPending} onClick={() => save.mutate()}
+              <button disabled={save.isPending || keepCount === 0} onClick={() => save.mutate()}
                 className="mt-5 mb-6 w-full rounded-xl bg-primary py-4 font-bold text-primary-foreground shadow-lg shadow-primary/20 disabled:opacity-60">
-                {save.isPending ? "Adding..." : `Add ${items.filter(i=>i._keep).length} items to inventory`}
+                {save.isPending ? "Adding..." : `Add All ${keepCount} Items`}
               </button>
             </div>
           )}
@@ -146,8 +162,6 @@ function ScanReceiptPage() {
     </div>
   );
 }
-
-function Receipt() { return <span className="text-5xl">🧾</span>; }
 
 async function fileToBase64(file: File): Promise<{ base64: string; mediaType: string }> {
   const arr = new Uint8Array(await file.arrayBuffer());

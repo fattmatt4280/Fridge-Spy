@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Share2, Trash2 } from "lucide-react";
+import { Plus, Share2, Trash2, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { categoryEmoji, isoDateInDays, suggestExpiryDays } from "@/lib/expiry";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/shopping")({
@@ -63,6 +64,38 @@ function ShoppingPage() {
     mutationFn: async () => { await supabase.from("shopping_list").delete().eq("checked", true).eq("user_id", user!.id); },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["shopping"] }); toast.success("Cleared checked items"); },
   });
+  const shoppingDone = useMutation({
+    mutationFn: async () => {
+      const checked = items.filter(i => i.checked);
+      if (!checked.length) throw new Error("Nothing checked");
+      const rows = checked.map(i => ({
+        user_id: user!.id,
+        name: i.name,
+        category: i.category ?? null,
+        emoji: categoryEmoji(i.name, i.category),
+        quantity: i.quantity ?? 1,
+        unit: i.unit ?? "each",
+        location: "fridge",
+        expiry_date: isoDateInDays(suggestExpiryDays(i.category, i.name)),
+      }));
+      const { error: insErr } = await supabase.from("items").insert(rows);
+      if (insErr) throw insErr;
+      const ids = checked.map(i => i.id);
+      const { error: delErr } = await supabase.from("shopping_list").delete().in("id", ids);
+      if (delErr) throw delErr;
+      await supabase.from("activity_log").insert({
+        user_id: user!.id, kind: "shopping", message: `Bought ${rows.length} items`,
+      });
+      return rows.length;
+    },
+    onSuccess: (n) => {
+      qc.invalidateQueries({ queryKey: ["shopping"] });
+      qc.invalidateQueries({ queryKey: ["items"] });
+      qc.invalidateQueries({ queryKey: ["activity"] });
+      toast.success(`Moved ${n} items to inventory`);
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
 
   async function share() {
     const text = items.filter(i => !i.checked).map(i => { const q = i.quantity ?? 1; return `• ${i.name}${q>1?` x${q}`:""}`; }).join("\n");
@@ -88,6 +121,13 @@ function ShoppingPage() {
           className="flex-1 rounded-xl border border-border bg-surface px-4 py-3 outline-none focus:border-primary" />
         <button className="flex items-center justify-center rounded-xl bg-primary px-4 text-primary-foreground"><Plus size={20}/></button>
       </form>
+
+      {items.some(i => i.checked) && (
+        <button onClick={() => shoppingDone.mutate()} disabled={shoppingDone.isPending}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 disabled:opacity-60">
+          <Check size={16}/> Shopping Done — Add {items.filter(i=>i.checked).length} to inventory
+        </button>
+      )}
 
       {items.length === 0 ? (
         <div className="mt-8 rounded-2xl border border-dashed border-border bg-surface/40 p-8 text-center">

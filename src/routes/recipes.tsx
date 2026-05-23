@@ -126,7 +126,11 @@ function RecipesPage() {
             className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-base font-bold text-primary-foreground shadow-lg shadow-primary/30 disabled:opacity-60">
             {generate.isPending ? <><Loader2 className="animate-spin" size={18}/> FridgeSpy is thinking...</> : <><Sparkles size={18}/> Use What I Have</>}
           </button>
-          <p className="mt-2 text-center text-xs text-muted-foreground">3 recipes from items expiring soonest.</p>
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            {isPremium
+              ? "Unlimited Pro generations. 3 recipes from items expiring soonest."
+              : `${Math.max(0, FREE_RECIPE_PER_DAY - recipesToday)} of ${FREE_RECIPE_PER_DAY} free generations left today.`}
+          </p>
         </>
       )}
 

@@ -187,6 +187,8 @@ function ScanFridgePage() {
           )}
         </div>
       )}
+
+      <UpgradeModal reason={gate.reason} onClose={gate.close} />
     </div>
   );
 }

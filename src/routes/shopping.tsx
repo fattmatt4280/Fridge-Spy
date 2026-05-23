@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Share2, Trash2 } from "lucide-react";
+import { Plus, Share2, Trash2, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { categoryEmoji, isoDateInDays, suggestExpiryDays } from "@/lib/expiry";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/shopping")({

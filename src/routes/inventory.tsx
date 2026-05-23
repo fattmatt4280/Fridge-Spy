@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { categoryEmoji, daysUntil, expiryColorClass, expiryLabel, expiryStatus } from "@/lib/expiry";
 import { toast } from "sonner";
+import { EmptyState, SkeletonRow } from "@/components/EmptyState";
 
 type Location = "all" | "fridge" | "freezer" | "pantry";
 type SortKey = "expiry" | "name" | "category" | "location";

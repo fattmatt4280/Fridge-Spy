@@ -96,7 +96,7 @@ export function HomeScoreCard() {
         </div>
       </section>
 
-      <section className="mt-3 rounded-2xl border border-primary/20 bg-primary/8 p-4" style={{ background: "color-mix(in oklab, var(--color-primary) 8%, transparent)" }}>
+      <section className="mt-3 rounded-2xl border border-primary/20 p-4" style={{ background: "color-mix(in oklab, var(--color-primary) 8%, transparent)" }}>
         <div className="flex items-center justify-between gap-3">
           <div className="text-sm">
             <div>🌱 <span className="font-semibold">{saved}</span> items saved from expiring this week</div>

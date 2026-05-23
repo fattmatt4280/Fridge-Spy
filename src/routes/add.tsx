@@ -67,6 +67,10 @@ function AddPage() {
     mutationFn: async () => {
       if (!user) throw new Error("Not signed in");
       if (!name.trim()) throw new Error("Name required");
+      if (!isPremium && itemsLeft <= 0) {
+        gate.open("item-cap");
+        throw new Error("Free tier limit reached");
+      }
       const { error } = await supabase.from("items").insert({
         user_id: user.id,
         name: name.trim(),
@@ -192,6 +196,8 @@ function AddPage() {
       </button>
 
       <style>{`.input{width:100%;border-radius:0.75rem;border:1px solid var(--color-border);background:var(--color-surface);padding:0.75rem 1rem;outline:none;}.input:focus{border-color:var(--color-primary)}`}</style>
+
+      <UpgradeModal reason={gate.reason} onClose={gate.close} />
     </div>
   );
 }

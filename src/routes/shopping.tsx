@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Share2, Trash2, Check } from "lucide-react";
+import { Plus, Share2, Trash2, Check, Store } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { categoryEmoji, isoDateInDays, suggestExpiryDays } from "@/lib/expiry";
@@ -30,6 +30,13 @@ function ShoppingPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [newItem, setNewItem] = useState("");
+  const [storeMode, setStoreMode] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("fridgespy.storeMode") === "1";
+  });
+  useEffect(() => {
+    if (typeof window !== "undefined") localStorage.setItem("fridgespy.storeMode", storeMode ? "1" : "0");
+  }, [storeMode]);
 
   const { data: items = [] } = useQuery({
     queryKey: ["shopping", user?.id],
@@ -111,10 +118,20 @@ function ShoppingPage() {
   const grouped = SECTIONS.map(s => ({ section: s, items: items.filter(i => sectionFor(i.category) === s) })).filter(g => g.items.length);
 
   return (
-    <div className="px-4 pt-[max(env(safe-area-inset-top),1rem)]">
+    <div className={`px-4 pt-[max(env(safe-area-inset-top),1rem)] ${storeMode ? "text-lg" : ""}`}>
       <div className="flex items-center justify-between py-3">
         <h1 className="text-2xl font-extrabold tracking-tight">Shopping</h1>
-        <button onClick={share} className="rounded-full p-2 text-muted-foreground hover:bg-surface hover:text-foreground"><Share2 size={20}/></button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setStoreMode(v => !v)}
+            aria-pressed={storeMode}
+            title="Store mode: bigger taps, high contrast"
+            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition ${storeMode ? "bg-primary text-primary-foreground shadow-md shadow-primary/30" : "text-muted-foreground hover:bg-surface"}`}
+          >
+            <Store size={14}/> Store
+          </button>
+          <button onClick={share} className="rounded-full p-2 text-muted-foreground hover:bg-surface hover:text-foreground"><Share2 size={20}/></button>
+        </div>
       </div>
 
       <form onSubmit={e => { e.preventDefault(); if (newItem.trim()) add.mutate(newItem.trim()); }} className="flex gap-2">
@@ -145,14 +162,14 @@ function ShoppingPage() {
               <h2 className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">{g.section}</h2>
               <ul className="overflow-hidden rounded-2xl border border-border bg-surface divide-y divide-border">
                 {g.items.map(i => (
-                  <li key={i.id} className="flex items-center gap-3 px-3 py-3">
+                  <li key={i.id} className={`flex items-center gap-3 px-3 ${storeMode ? "py-5" : "py-3"}`}>
                     <input type="checkbox" checked={i.checked} onChange={e => toggle.mutate({ id: i.id, checked: e.target.checked })}
-                      className="h-5 w-5 accent-[color:var(--color-primary)]" />
-                    <span className={`flex-1 text-sm ${i.checked ? "text-muted-foreground line-through" : ""}`}>
+                      className={`${storeMode ? "h-7 w-7" : "h-5 w-5"} accent-[color:var(--color-primary)]`} />
+                    <span className={`flex-1 ${storeMode ? "text-lg font-semibold" : "text-sm"} ${i.checked ? "text-muted-foreground line-through" : ""}`}>
                       {i.name}{(i.quantity ?? 1) > 1 ? ` × ${i.quantity ?? 1}` : ""}
                     </span>
                     <button onClick={() => remove.mutate(i.id)} className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
-                      <Trash2 size={16}/>
+                      <Trash2 size={storeMode ? 20 : 16}/>
                     </button>
                   </li>
                 ))}

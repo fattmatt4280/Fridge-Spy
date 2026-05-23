@@ -128,8 +128,8 @@ function ScanFridgePage() {
               <p className="px-6 text-center text-sm">Point at your fridge shelf and tap capture.</p>
             </div>
           </div>
-          <button onClick={() => fileRef.current?.click()} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-primary-foreground shadow-lg shadow-primary/20">
-            <Camera size={18}/> Capture fridge photo
+          <button onClick={() => isPremium ? fileRef.current?.click() : gate.open("fridge-scan")} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-primary-foreground shadow-lg shadow-primary/20">
+            {isPremium ? <><Camera size={18}/> Capture fridge photo</> : <><Lock size={18}/> Unlock Fridge Scan</>}
           </button>
         </div>
       )}

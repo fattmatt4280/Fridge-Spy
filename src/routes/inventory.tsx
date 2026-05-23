@@ -114,12 +114,18 @@ function InventoryPage() {
 
       {/* List */}
       <div className="mt-4 space-y-2.5 pb-6">
-        {isLoading && <div className="text-sm text-muted-foreground">Loading…</div>}
+        {isLoading && (
+          <>
+            <SkeletonRow /><SkeletonRow /><SkeletonRow />
+          </>
+        )}
         {!isLoading && filtered.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-border bg-surface/40 p-8 text-center">
-            <div className="text-4xl">📭</div>
-            <div className="mt-2 text-sm text-muted-foreground">Nothing here yet. Add your first item.</div>
-          </div>
+          <EmptyState
+            emoji="🥦"
+            title="Your kitchen is a mystery."
+            body="Add your first item to start tracking. Snap a receipt to add everything at once."
+            action={{ label: "Snap a Receipt", to: "/scan-receipt" }}
+          />
         )}
         {filtered.map(item => {
           const status = expiryStatus(item.expiry_date);

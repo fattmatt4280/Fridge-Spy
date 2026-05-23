@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Sparkles, Clock, Bookmark, BookmarkCheck, Loader2, ShoppingCart, Lock } from "lucide-react";
+import { Sparkles, Clock, Bookmark, BookmarkCheck, Loader2, ShoppingCart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { generateRecipes } from "@/lib/claude.functions";

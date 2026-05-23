@@ -30,6 +30,13 @@ function ShoppingPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [newItem, setNewItem] = useState("");
+  const [storeMode, setStoreMode] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("fridgespy.storeMode") === "1";
+  });
+  useEffect(() => {
+    if (typeof window !== "undefined") localStorage.setItem("fridgespy.storeMode", storeMode ? "1" : "0");
+  }, [storeMode]);
 
   const { data: items = [] } = useQuery({
     queryKey: ["shopping", user?.id],

@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { generateRecipes } from "@/lib/claude.functions";
 import { daysUntil } from "@/lib/expiry";
 import { toast } from "sonner";
+import { EmptyState } from "@/components/EmptyState";
 
 export const Route = createFileRoute("/recipes")({
   head: () => ({ meta: [{ title: "Tonight's Cook — FridgeSpy" }] }),
@@ -97,11 +98,34 @@ function RecipesPage() {
     <div className="px-4 pt-[max(env(safe-area-inset-top),1rem)] pb-6">
       <h1 className="py-3 text-2xl font-extrabold tracking-tight">Tonight's Cook</h1>
 
-      <button onClick={() => generate.mutate()} disabled={generate.isPending}
-        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-base font-bold text-primary-foreground shadow-lg shadow-primary/30 disabled:opacity-60">
-        {generate.isPending ? <><Loader2 className="animate-spin" size={18}/> FridgeSpy is thinking...</> : <><Sparkles size={18}/> Use What I Have</>}
-      </button>
-      <p className="mt-2 text-center text-xs text-muted-foreground">3 recipes from items expiring soonest.</p>
+      {items.length === 0 ? (
+        <EmptyState
+          emoji="👨‍🍳"
+          title="Your kitchen is empty."
+          body="Add some items to your inventory and FridgeSpy will suggest recipes using what you have."
+          action={{ label: "Add Items", to: "/add" }}
+        />
+      ) : (
+        <>
+          <button onClick={() => generate.mutate()} disabled={generate.isPending}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-base font-bold text-primary-foreground shadow-lg shadow-primary/30 disabled:opacity-60">
+            {generate.isPending ? <><Loader2 className="animate-spin" size={18}/> FridgeSpy is thinking...</> : <><Sparkles size={18}/> Use What I Have</>}
+          </button>
+          <p className="mt-2 text-center text-xs text-muted-foreground">3 recipes from items expiring soonest.</p>
+        </>
+      )}
+
+      {generate.isPending && (
+        <div className="mt-5 space-y-3">
+          {[0,1,2].map(k => (
+            <div key={k} className="glass-card p-4">
+              <div className="h-4 w-2/3 animate-pulse rounded bg-background/60" />
+              <div className="mt-2 h-3 w-1/2 animate-pulse rounded bg-background/50" />
+              <div className="mt-3 h-3 w-full animate-pulse rounded bg-background/40" />
+            </div>
+          ))}
+        </div>
+      )}
 
       {recipes && (
         <div className="mt-5 space-y-3">

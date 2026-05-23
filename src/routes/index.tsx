@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Bell, Camera, Receipt, Plus, ChefHat, Sparkles } from "lucide-react";
 import { Logo } from "@/components/ui-fs/Logo";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { daysUntil, expiryColorClass, expiryLabel, expiryStatus, categoryEmoji } from "@/lib/expiry";
+import { daysUntil, expiryLabel, expiryStatus, categoryEmoji } from "@/lib/expiry";
+import { HomeScoreCard } from "@/components/HomeScoreCard";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [{ title: "FridgeSpy — The Spy Report" }] }),
@@ -13,7 +14,8 @@ export const Route = createFileRoute("/")({
 
 function HomePage() {
   const { user } = useAuth();
-  const qc = useQueryClient();
+
+
 
   const { data: items = [] } = useQuery({
     queryKey: ["items", user?.id],
@@ -51,7 +53,7 @@ function HomePage() {
     return d !== null && d < 0;
   });
 
-  if (!user) return null;
+  // Guests (no user) still see the home shell with empty data.
 
   return (
     <div className="px-4 pt-[max(env(safe-area-inset-top),1rem)]">
@@ -73,6 +75,9 @@ function HomePage() {
         </div>
       </section>
 
+      {/* FridgeSpy Score + waste saved */}
+      <HomeScoreCard />
+
       {/* Quick actions */}
       <section className="mt-4 grid grid-cols-3 gap-2">
         <QuickAction to="/scan-receipt" icon={<Receipt size={20} />} label="Snap Receipt" />
@@ -87,8 +92,10 @@ function HomePage() {
           <Link to="/inventory" className="text-xs font-semibold text-primary">See all</Link>
         </div>
         {expiring.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border bg-surface/40 px-4 py-6 text-center text-sm text-muted-foreground">
-            Nothing's about to expire. Nice work.
+          <div className="rounded-2xl border border-dashed border-border bg-surface/40 px-4 py-8 text-center">
+            <div className="text-3xl">✅</div>
+            <div className="mt-2 text-sm font-bold">Nothing's expiring soon.</div>
+            <div className="mt-1 text-xs text-muted-foreground">Nice work keeping your kitchen fresh! Check back after your next grocery run.</div>
           </div>
         ) : (
           <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-1">

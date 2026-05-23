@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { categoryEmoji, isoDateInDays, suggestExpiryDays } from "@/lib/expiry";
 import { toast } from "sonner";
+import { EmptyState } from "@/components/EmptyState";
 
 export const Route = createFileRoute("/shopping")({
   head: () => ({ meta: [{ title: "Shopping List — FridgeSpy" }] }),
@@ -130,9 +131,12 @@ function ShoppingPage() {
       )}
 
       {items.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-dashed border-border bg-surface/40 p-8 text-center">
-          <div className="text-4xl">🛒</div>
-          <div className="mt-2 text-sm text-muted-foreground">Your shopping list is empty.</div>
+        <div className="mt-8">
+          <EmptyState
+            emoji="🛒"
+            title="Your list is clear."
+            body="Swipe right on inventory items to add them here, or type anything above."
+          />
         </div>
       ) : (
         <div className="mt-5 space-y-5 pb-6">

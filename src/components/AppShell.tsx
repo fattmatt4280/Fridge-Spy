@@ -12,7 +12,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (loading) return;
-    if (!user && !PUBLIC.has(path)) {
+    const guest = typeof window !== "undefined" && localStorage.getItem("fridgespy.guest") === "1";
+    if (!user && !guest && !PUBLIC.has(path)) {
       navigate({ to: "/login", replace: true });
     }
   }, [user, loading, path, navigate]);

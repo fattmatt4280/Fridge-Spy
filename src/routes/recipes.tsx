@@ -216,6 +216,8 @@ function RecipesPage() {
           </ul>
         </section>
       )}
+
+      <UpgradeModal reason={gate.reason} onClose={gate.close} />
     </div>
   );
 }

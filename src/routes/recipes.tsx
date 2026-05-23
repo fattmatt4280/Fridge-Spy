@@ -2,13 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Sparkles, Clock, Bookmark, BookmarkCheck, Loader2, ShoppingCart } from "lucide-react";
+import { Sparkles, Clock, Bookmark, BookmarkCheck, Loader2, ShoppingCart, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { generateRecipes } from "@/lib/claude.functions";
 import { daysUntil } from "@/lib/expiry";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/EmptyState";
+import { usePremium, useUpgradeGate } from "@/hooks/usePremium";
+import { UpgradeModal } from "@/components/UpgradeModal";
+import { FREE_RECIPE_PER_DAY } from "@/lib/limits";
 
 export const Route = createFileRoute("/recipes")({
   head: () => ({ meta: [{ title: "Tonight's Cook — FridgeSpy" }] }),

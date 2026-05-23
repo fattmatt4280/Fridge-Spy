@@ -1,13 +1,13 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Home, Package, Plus, ShoppingCart, ChefHat } from "lucide-react";
 
-const tabs = [
+const tabs: { to: "/" | "/inventory" | "/add" | "/shopping" | "/recipes"; label: string; icon: typeof Home; primary?: boolean }[] = [
   { to: "/", label: "Home", icon: Home },
   { to: "/inventory", label: "Inventory", icon: Package },
   { to: "/add", label: "Add", icon: Plus, primary: true },
   { to: "/shopping", label: "Shop", icon: ShoppingCart },
   { to: "/recipes", label: "Cook", icon: ChefHat },
-] as const;
+];
 
 export function BottomNav() {
   const path = useRouterState({ select: s => s.location.pathname });

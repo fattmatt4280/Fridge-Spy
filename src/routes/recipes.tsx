@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { generateRecipes } from "@/lib/claude.functions";
 import { daysUntil } from "@/lib/expiry";
 import { toast } from "sonner";
+import { EmptyState } from "@/components/EmptyState";
 
 export const Route = createFileRoute("/recipes")({
   head: () => ({ meta: [{ title: "Tonight's Cook — FridgeSpy" }] }),

@@ -65,7 +65,7 @@ function ShoppingPage() {
   });
 
   async function share() {
-    const text = items.filter(i => !i.checked).map(i => `• ${i.name}${((i.quantity ?? 1)>1)?` x${i.quantity ?? 1}`:""}`).join("\n");
+    const text = items.filter(i => !i.checked).map(i => { const q = i.quantity ?? 1; return `• ${i.name}${q>1?` x${q}`:""}`; }).join("\n");
     if (navigator.share) {
       try { await navigator.share({ title: "FridgeSpy shopping list", text }); } catch {}
     } else {
@@ -105,7 +105,7 @@ function ShoppingPage() {
                     <input type="checkbox" checked={i.checked} onChange={e => toggle.mutate({ id: i.id, checked: e.target.checked })}
                       className="h-5 w-5 accent-[color:var(--color-primary)]" />
                     <span className={`flex-1 text-sm ${i.checked ? "text-muted-foreground line-through" : ""}`}>
-                      {i.name}{((i.quantity ?? 1)>1) ? ` × ${i.quantity ?? 1}` : ""}
+                      {i.name}{(i.quantity ?? 1) > 1 ? ` × ${i.quantity ?? 1}` : ""}
                     </span>
                     <button onClick={() => remove.mutate(i.id)} className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
                       <Trash2 size={16}/>

@@ -33,9 +33,14 @@ function ScanReceiptPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const scanFn = useServerFn(scanReceipt);
+  const { isPremium } = usePremium();
+  const gate = useUpgradeGate();
 
   const [preview, setPreview] = useState<string | null>(null);
   const [items, setItems] = useState<ParsedItem[] | null>(null);
+
+  // Auto-open paywall for free users entering this premium-only screen.
+  useEffect(() => { if (!isPremium) gate.open("receipt-scan"); /* eslint-disable-next-line */ }, [isPremium]);
 
   const scan = useMutation({
     mutationFn: async (file: File) => {

@@ -26,9 +26,7 @@ async function callClaude(body: any): Promise<any> {
 }
 
 function extractJSON<T = unknown>(text: string): T {
-  // Strip markdown code fences
   const cleaned = text.replace(/```json\s*|\s*```/g, "").trim();
-  // Find first JSON array or object
   const match = cleaned.match(/(\[[\s\S]*\]|\{[\s\S]*\})/);
   const candidate = match ? match[0] : cleaned;
   return JSON.parse(candidate) as T;
@@ -52,12 +50,9 @@ export const scanReceipt = createServerFn({ method: "POST" })
         content: [
           { type: "image", source: { type: "base64", media_type: data.mediaType, data: data.imageBase64 } },
           { type: "text", text:
-            `Extract all grocery items from this receipt. Return ONLY a JSON array. No markdown, no commentary.
-Each item: { "name": string, "quantity": number, "unit": string, "category": string, "expiry_days": number, "emoji": string }.
-- category: one of dairy, produce, meat, frozen, pantry, beverage, snack, bakery, other
-- expiry_days: typical shelf life from today for that item
-- emoji: a single food emoji
-If no grocery items, return [].` },
+            `Look at this grocery receipt image. Extract every food item purchased. Return ONLY a JSON array, no other text, in this format:
+[{"name": "item name", "quantity": 1, "unit": "each", "category": "dairy", "estimated_expiry_days": 7}]
+Categories must be one of: produce, dairy, meat, seafood, frozen, pantry, beverages, snacks, condiments, other` },
         ],
       }],
     });
@@ -84,11 +79,8 @@ export const scanFridge = createServerFn({ method: "POST" })
         content: [
           { type: "image", source: { type: "base64", media_type: data.mediaType, data: data.imageBase64 } },
           { type: "text", text:
-            `Identify all food items visible in this fridge photo. Return ONLY a JSON array. No markdown.
-Each item: { "name": string, "brand": string|null, "quantity": number, "unit": string, "category": string, "emoji": string, "confidence": number }.
-- confidence: 0-1
-- Use the most specific name you can see. Mention the brand if a label is visible.
-If nothing is visible, return [].` },
+            `Look at this photo of a fridge or pantry shelf. Identify every food item you can see. Return ONLY a JSON array, no other text:
+[{"name": "item name", "estimated_quantity": 1, "unit": "each", "category": "dairy", "confidence": "high/medium/low"}]` },
         ],
       }],
     });
@@ -100,41 +92,27 @@ If nothing is visible, return [].` },
 // ---------- Recipe generation ----------
 export const generateRecipes = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { inventory: { name: string; quantity?: number; unit?: string; days_left?: number | null }[] }) =>
+  .inputValidator((input: {
+    expiring: { name: string }[];
+    other: { name: string }[];
+  }) =>
     z.object({
-      inventory: z.array(z.object({
-        name: z.string().min(1).max(200),
-        quantity: z.number().optional(),
-        unit: z.string().max(50).optional(),
-        days_left: z.number().nullable().optional(),
-      })).min(1).max(200),
+      expiring: z.array(z.object({ name: z.string().min(1).max(200) })).max(200),
+      other: z.array(z.object({ name: z.string().min(1).max(200) })).max(400),
     }).parse(input)
   )
   .handler(async ({ data }) => {
-    const list = data.inventory
-      .map(i => `- ${i.name}${i.quantity ? ` (${i.quantity} ${i.unit ?? ""})` : ""}${typeof i.days_left === "number" ? ` [${i.days_left}d left]` : ""}`)
-      .join("\n");
+    const expiringList = data.expiring.map(i => i.name).join(", ") || "(none)";
+    const otherList = data.other.map(i => i.name).join(", ") || "(none)";
+    const prompt = `I have these items in my kitchen that need to be used soon: ${expiringList}.
+I also have these other ingredients: ${otherList}.
+Suggest 3 recipes I can make tonight.
+Return ONLY JSON, no other text:
+[{"title": "Recipe Name", "prep_time": "20 mins", "difficulty": "Easy/Medium/Hard", "uses_expiring": ["item1", "item2"], "missing_ingredients": ["item1"], "instructions": ["step 1", "step 2"], "why_make_this": "Uses your expiring Greek yogurt and spinach"}]`;
     const json = await callClaude({
       model: MODEL,
       max_tokens: 3072,
-      messages: [{
-        role: "user",
-        content: `Based on these ingredients I have on hand:
-${list}
-
-Suggest 3 recipes I can make tonight using primarily items expiring within 7 days.
-Return ONLY a JSON array. No markdown, no commentary.
-
-Each recipe: {
-  "title": string,
-  "prep_time": string (e.g. "25 min"),
-  "difficulty": "Easy" | "Medium" | "Hard",
-  "ingredients": string[],
-  "instructions": string[],
-  "uses_items": string[] (names from my inventory it uses),
-  "missing_ingredients": string[] (things I'd need to buy)
-}`,
-      }],
+      messages: [{ role: "user", content: prompt }],
     });
     const text = json?.content?.[0]?.text ?? "[]";
     const recipes = extractJSON<any[]>(text);

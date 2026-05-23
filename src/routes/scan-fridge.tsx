@@ -14,7 +14,33 @@ export const Route = createFileRoute("/scan-fridge")({
   component: ScanFridgePage,
 });
 
-type Detected = { name: string; brand?: string|null; quantity: number; unit?: string; category?: string; emoji?: string; confidence?: number; _keep?: boolean };
+type Confidence = "high" | "medium" | "low";
+type Detected = {
+  name: string;
+  brand?: string | null;
+  estimated_quantity?: number;
+  quantity?: number;
+  unit?: string;
+  category?: string;
+  emoji?: string;
+  confidence?: Confidence | string | number;
+  _keep?: boolean;
+};
+
+function normConfidence(c: Detected["confidence"]): Confidence {
+  if (typeof c === "number") return c >= 0.75 ? "high" : c >= 0.5 ? "medium" : "low";
+  const s = String(c ?? "").toLowerCase();
+  if (s.startsWith("h")) return "high";
+  if (s.startsWith("m")) return "medium";
+  return "low";
+}
+function confBadge(c: Confidence) {
+  return c === "high"
+    ? "bg-primary/15 text-primary"
+    : c === "medium"
+    ? "bg-warning/15 text-warning"
+    : "bg-destructive/15 text-destructive";
+}
 
 function ScanFridgePage() {
   const fileRef = useRef<HTMLInputElement>(null);
@@ -41,15 +67,15 @@ function ScanFridgePage() {
 
   const save = useMutation({
     mutationFn: async () => {
-      if (!user || !items) return;
+      if (!user || !items) return 0;
       const rows = items.filter(i => i._keep).map(i => ({
         user_id: user.id,
         name: i.name,
         brand: i.brand ?? null,
         category: i.category ?? null,
         emoji: i.emoji ?? categoryEmoji(i.name, i.category),
-        quantity: i.quantity ?? 1,
-        unit: i.unit ?? "unit",
+        quantity: i.estimated_quantity ?? i.quantity ?? 1,
+        unit: i.unit ?? "each",
         location: "fridge",
         expiry_date: isoDateInDays(suggestExpiryDays(i.category, i.name)),
       }));
@@ -59,11 +85,12 @@ function ScanFridgePage() {
       await supabase.from("activity_log").insert({
         user_id: user.id, kind: "fridge-scan", message: `Scanned fridge — added ${rows.length} items`,
       });
+      return rows.length;
     },
-    onSuccess: () => {
+    onSuccess: (n) => {
       qc.invalidateQueries({ queryKey: ["items"] });
       qc.invalidateQueries({ queryKey: ["activity"] });
-      toast.success("Items added");
+      toast.success(`Added ${n} items`);
       navigate({ to: "/inventory" });
     },
     onError: (e: any) => toast.error(e.message),
@@ -74,6 +101,8 @@ function ScanFridgePage() {
     setItems(null);
     scan.mutate(f);
   }
+
+  const keepCount = items?.filter(i => i._keep).length ?? 0;
 
   return (
     <div className="px-4 pt-[max(env(safe-area-inset-top),1rem)]">
@@ -116,31 +145,37 @@ function ScanFridgePage() {
           {items && (
             <div className="mt-4">
               <div className="mb-2 flex items-center justify-between">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Detected ({items.filter(i=>i._keep).length})</h2>
+                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Detected ({keepCount})</h2>
                 <button onClick={() => fileRef.current?.click()} className="text-xs font-semibold text-primary">Retake</button>
               </div>
               <ul className="space-y-1.5">
-                {items.map((it, idx) => (
-                  <li key={idx} className="glass-card flex items-center gap-3 p-3">
-                    <input type="checkbox" checked={!!it._keep}
-                      onChange={e => setItems(arr=>arr!.map((x,i)=>i===idx?{...x,_keep:e.target.checked}:x))}
-                      className="h-5 w-5 accent-[color:var(--color-primary)]" />
-                    <div className="text-2xl">{it.emoji ?? categoryEmoji(it.name, it.category)}</div>
-                    <div className="flex-1">
-                      <input value={it.name} onChange={e=>setItems(arr=>arr!.map((x,i)=>i===idx?{...x,name:e.target.value}:x))}
-                        className="w-full bg-transparent text-sm font-semibold outline-none" />
-                      <div className="text-xs text-muted-foreground">
-                        {it.brand ?? "no brand"} · {Math.round((it.confidence ?? 0)*100)}% confident
+                {items.map((it, idx) => {
+                  const conf = normConfidence(it.confidence);
+                  return (
+                    <li key={idx} className="glass-card flex items-center gap-3 p-3">
+                      <input type="checkbox" checked={!!it._keep}
+                        onChange={e => setItems(arr=>arr!.map((x,i)=>i===idx?{...x,_keep:e.target.checked}:x))}
+                        className="h-5 w-5 accent-[color:var(--color-primary)]" />
+                      <div className="text-2xl">{it.emoji ?? categoryEmoji(it.name, it.category)}</div>
+                      <div className="min-w-0 flex-1">
+                        <input value={it.name} onChange={e=>setItems(arr=>arr!.map((x,i)=>i===idx?{...x,name:e.target.value}:x))}
+                          className="w-full bg-transparent text-sm font-semibold outline-none" />
+                        <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${confBadge(conf)}`}>{conf}</span>
+                          <span className="truncate">{it.category ?? "—"}</span>
+                        </div>
                       </div>
-                    </div>
-                    <input type="number" min={0} value={it.quantity} onChange={e=>setItems(arr=>arr!.map((x,i)=>i===idx?{...x,quantity:Number(e.target.value)}:x))}
-                      className="w-14 rounded-md border border-border bg-background/40 px-2 py-1 text-center text-sm" />
-                  </li>
-                ))}
+                      <input type="number" min={0}
+                        value={it.estimated_quantity ?? it.quantity ?? 1}
+                        onChange={e=>setItems(arr=>arr!.map((x,i)=>i===idx?{...x,estimated_quantity:Number(e.target.value),quantity:Number(e.target.value)}:x))}
+                        className="w-14 rounded-md border border-border bg-background/40 px-2 py-1 text-center text-sm" />
+                    </li>
+                  );
+                })}
               </ul>
-              <button disabled={save.isPending} onClick={() => save.mutate()}
+              <button disabled={save.isPending || keepCount === 0} onClick={() => save.mutate()}
                 className="mt-5 mb-6 w-full rounded-xl bg-primary py-4 font-bold text-primary-foreground shadow-lg shadow-primary/20 disabled:opacity-60">
-                {save.isPending ? "Adding..." : `Add ${items.filter(i=>i._keep).length} items`}
+                {save.isPending ? "Adding..." : `Add All ${keepCount} Items`}
               </button>
             </div>
           )}

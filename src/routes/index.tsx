@@ -14,7 +14,8 @@ export const Route = createFileRoute("/")({
 
 function HomePage() {
   const { user } = useAuth();
-  const qc = useQueryClient();
+
+
 
   const { data: items = [] } = useQuery({
     queryKey: ["items", user?.id],

@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { categoryEmoji, isoDateInDays, suggestExpiryDays } from "@/lib/expiry";
 import { toast } from "sonner";
+import { EmptyState } from "@/components/EmptyState";
 
 export const Route = createFileRoute("/shopping")({
   head: () => ({ meta: [{ title: "Shopping List — FridgeSpy" }] }),

@@ -7,6 +7,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { lookupBarcode, searchByName, type OFFProduct } from "@/lib/openfoodfacts";
 import { categoryEmoji, isoDateInDays, suggestExpiryDays } from "@/lib/expiry";
 import { toast } from "sonner";
+import { usePremium, useUpgradeGate } from "@/hooks/usePremium";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 export const Route = createFileRoute("/add")({
   head: () => ({ meta: [{ title: "Add Item — FridgeSpy" }] }),

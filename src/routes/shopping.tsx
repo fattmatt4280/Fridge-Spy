@@ -118,10 +118,20 @@ function ShoppingPage() {
   const grouped = SECTIONS.map(s => ({ section: s, items: items.filter(i => sectionFor(i.category) === s) })).filter(g => g.items.length);
 
   return (
-    <div className="px-4 pt-[max(env(safe-area-inset-top),1rem)]">
+    <div className={`px-4 pt-[max(env(safe-area-inset-top),1rem)] ${storeMode ? "text-lg" : ""}`}>
       <div className="flex items-center justify-between py-3">
         <h1 className="text-2xl font-extrabold tracking-tight">Shopping</h1>
-        <button onClick={share} className="rounded-full p-2 text-muted-foreground hover:bg-surface hover:text-foreground"><Share2 size={20}/></button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setStoreMode(v => !v)}
+            aria-pressed={storeMode}
+            title="Store mode: bigger taps, high contrast"
+            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition ${storeMode ? "bg-primary text-primary-foreground shadow-md shadow-primary/30" : "text-muted-foreground hover:bg-surface"}`}
+          >
+            <Store size={14}/> Store
+          </button>
+          <button onClick={share} className="rounded-full p-2 text-muted-foreground hover:bg-surface hover:text-foreground"><Share2 size={20}/></button>
+        </div>
       </div>
 
       <form onSubmit={e => { e.preventDefault(); if (newItem.trim()) add.mutate(newItem.trim()); }} className="flex gap-2">

@@ -122,6 +122,13 @@ function ShoppingPage() {
         <button className="flex items-center justify-center rounded-xl bg-primary px-4 text-primary-foreground"><Plus size={20}/></button>
       </form>
 
+      {items.some(i => i.checked) && (
+        <button onClick={() => shoppingDone.mutate()} disabled={shoppingDone.isPending}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 disabled:opacity-60">
+          <Check size={16}/> Shopping Done — Add {items.filter(i=>i.checked).length} to inventory
+        </button>
+      )}
+
       {items.length === 0 ? (
         <div className="mt-8 rounded-2xl border border-dashed border-border bg-surface/40 p-8 text-center">
           <div className="text-4xl">🛒</div>

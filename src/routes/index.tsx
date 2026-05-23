@@ -91,8 +91,10 @@ function HomePage() {
           <Link to="/inventory" className="text-xs font-semibold text-primary">See all</Link>
         </div>
         {expiring.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border bg-surface/40 px-4 py-6 text-center text-sm text-muted-foreground">
-            Nothing's about to expire. Nice work.
+          <div className="rounded-2xl border border-dashed border-border bg-surface/40 px-4 py-8 text-center">
+            <div className="text-3xl">✅</div>
+            <div className="mt-2 text-sm font-bold">Nothing's expiring soon.</div>
+            <div className="mt-1 text-xs text-muted-foreground">Nice work keeping your kitchen fresh! Check back after your next grocery run.</div>
           </div>
         ) : (
           <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-1">

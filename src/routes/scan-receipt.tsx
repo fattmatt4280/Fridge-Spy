@@ -104,6 +104,13 @@ function ScanReceiptPage() {
         <h1 className="text-xl font-extrabold tracking-tight">Snap Receipt</h1>
       </div>
 
+      {!isPremium && (
+        <button onClick={() => gate.open("receipt-scan")}
+          className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary/10 py-3 text-sm font-semibold text-primary">
+          <Lock size={14}/> Receipt Scan is a Pro feature — Unlock
+        </button>
+      )}
+
       <input ref={fileRef} type="file" accept="image/*" capture="environment" hidden
         onChange={e => { const f = e.target.files?.[0]; if (f) onFile(f); }} />
 
@@ -115,8 +122,9 @@ function ScanReceiptPage() {
               <p className="text-sm">Snap a clear photo of your grocery receipt.</p>
             </div>
           </div>
-          <button onClick={() => fileRef.current?.click()} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-primary-foreground shadow-lg shadow-primary/20">
-            <Camera size={18}/> Take or upload photo
+          <button onClick={() => isPremium ? fileRef.current?.click() : gate.open("receipt-scan")}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-primary-foreground shadow-lg shadow-primary/20">
+            {isPremium ? <><Camera size={18}/> Take or upload photo</> : <><Lock size={18}/> Unlock Receipt Scan</>}
           </button>
         </div>
       )}

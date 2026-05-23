@@ -143,7 +143,7 @@ function Slide3({ score }: { score: number }) {
   return (
     <>
       <div className="mb-5">
-        <ScoreRing score={score} size={150} stroke={12} animate={false} />
+        <ScoreRing score={score} size={150} stroke={12} animate />
       </div>
       <h1 className="text-3xl font-extrabold tracking-tight">Never Waste Food Again</h1>
       <p className="mt-3 max-w-xs text-sm text-muted-foreground">

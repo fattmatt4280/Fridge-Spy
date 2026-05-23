@@ -174,6 +174,8 @@ function ScanReceiptPage() {
           )}
         </div>
       )}
+
+      <UpgradeModal reason={gate.reason} onClose={gate.close} />
     </div>
   );
 }

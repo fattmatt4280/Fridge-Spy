@@ -72,8 +72,9 @@ function ItemDetailPage() {
     }
   }, [item]);
 
+  type ItemPatch = Partial<{ quantity: number; expiry_date: string | null; location: string; notes: string | null }>;
   const update = useMutation({
-    mutationFn: async (patch: Record<string, any>) => {
+    mutationFn: async (patch: ItemPatch) => {
       const { error } = await supabase.from("items").update(patch).eq("id", id);
       if (error) throw error;
     },

@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useRef, useState } from "react";
-import { ArrowLeft, Camera, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, Camera, Loader2, Lock } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { scanReceipt } from "@/lib/claude.functions";
@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { isoDateInDays, categoryEmoji, suggestExpiryDays } from "@/lib/expiry";
 import { toast } from "sonner";
+import { usePremium, useUpgradeGate } from "@/hooks/usePremium";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 export const Route = createFileRoute("/scan-receipt")({
   head: () => ({ meta: [{ title: "Snap Receipt — FridgeSpy" }] }),
@@ -31,9 +33,14 @@ function ScanReceiptPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const scanFn = useServerFn(scanReceipt);
+  const { isPremium } = usePremium();
+  const gate = useUpgradeGate();
 
   const [preview, setPreview] = useState<string | null>(null);
   const [items, setItems] = useState<ParsedItem[] | null>(null);
+
+  // Auto-open paywall for free users entering this premium-only screen.
+  useEffect(() => { if (!isPremium) gate.open("receipt-scan"); /* eslint-disable-next-line */ }, [isPremium]);
 
   const scan = useMutation({
     mutationFn: async (file: File) => {
@@ -97,6 +104,13 @@ function ScanReceiptPage() {
         <h1 className="text-xl font-extrabold tracking-tight">Snap Receipt</h1>
       </div>
 
+      {!isPremium && (
+        <button onClick={() => gate.open("receipt-scan")}
+          className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary/10 py-3 text-sm font-semibold text-primary">
+          <Lock size={14}/> Receipt Scan is a Pro feature — Unlock
+        </button>
+      )}
+
       <input ref={fileRef} type="file" accept="image/*" capture="environment" hidden
         onChange={e => { const f = e.target.files?.[0]; if (f) onFile(f); }} />
 
@@ -108,8 +122,9 @@ function ScanReceiptPage() {
               <p className="text-sm">Snap a clear photo of your grocery receipt.</p>
             </div>
           </div>
-          <button onClick={() => fileRef.current?.click()} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-primary-foreground shadow-lg shadow-primary/20">
-            <Camera size={18}/> Take or upload photo
+          <button onClick={() => isPremium ? fileRef.current?.click() : gate.open("receipt-scan")}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-primary-foreground shadow-lg shadow-primary/20">
+            {isPremium ? <><Camera size={18}/> Take or upload photo</> : <><Lock size={18}/> Unlock Receipt Scan</>}
           </button>
         </div>
       )}
@@ -159,6 +174,8 @@ function ScanReceiptPage() {
           )}
         </div>
       )}
+
+      <UpgradeModal reason={gate.reason} onClose={gate.close} />
     </div>
   );
 }

@@ -9,6 +9,9 @@ import { generateRecipes } from "@/lib/claude.functions";
 import { daysUntil } from "@/lib/expiry";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/EmptyState";
+import { usePremium, useUpgradeGate } from "@/hooks/usePremium";
+import { UpgradeModal } from "@/components/UpgradeModal";
+import { FREE_RECIPE_PER_DAY } from "@/lib/limits";
 
 export const Route = createFileRoute("/recipes")({
   head: () => ({ meta: [{ title: "Tonight's Cook — FridgeSpy" }] }),
@@ -31,6 +34,8 @@ function RecipesPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const genFn = useServerFn(generateRecipes);
+  const { isPremium, recipesLeft, recipesToday } = usePremium();
+  const gate = useUpgradeGate();
   const [recipes, setRecipes] = useState<GeneratedRecipe[] | null>(null);
   const [expanded, setExpanded] = useState<number | null>(null);
 
@@ -48,6 +53,10 @@ function RecipesPage() {
   const generate = useMutation({
     mutationFn: async () => {
       if (items.length === 0) throw new Error("Add items to your inventory first.");
+      if (!isPremium && recipesLeft <= 0) {
+        gate.open("recipe-daily");
+        throw new Error("limit");
+      }
       const expiring: { name: string }[] = [];
       const other: { name: string }[] = [];
       for (const i of items) {
@@ -55,13 +64,19 @@ function RecipesPage() {
         if (d !== null && d <= 7) expiring.push({ name: i.name });
         else other.push({ name: i.name });
       }
-      return await genFn({ data: { expiring, other } });
+      const res = await genFn({ data: { expiring, other } });
+      // Log usage for daily quota tracking.
+      await supabase.from("activity_log").insert({
+        user_id: user!.id, kind: "recipe-gen", message: "Generated recipes",
+      });
+      qc.invalidateQueries({ queryKey: ["recipes-today"] });
+      return res;
     },
     onSuccess: (res) => {
       setRecipes(res.recipes as GeneratedRecipe[]);
       if (!res.recipes?.length) toast.error("No recipes returned. Try again.");
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => { if (e?.message !== "limit") toast.error(e.message); },
   });
 
   const save = useMutation({
@@ -111,7 +126,11 @@ function RecipesPage() {
             className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-base font-bold text-primary-foreground shadow-lg shadow-primary/30 disabled:opacity-60">
             {generate.isPending ? <><Loader2 className="animate-spin" size={18}/> FridgeSpy is thinking...</> : <><Sparkles size={18}/> Use What I Have</>}
           </button>
-          <p className="mt-2 text-center text-xs text-muted-foreground">3 recipes from items expiring soonest.</p>
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            {isPremium
+              ? "Unlimited Pro generations. 3 recipes from items expiring soonest."
+              : `${Math.max(0, FREE_RECIPE_PER_DAY - recipesToday)} of ${FREE_RECIPE_PER_DAY} free generations left today.`}
+          </p>
         </>
       )}
 
@@ -197,6 +216,8 @@ function RecipesPage() {
           </ul>
         </section>
       )}
+
+      <UpgradeModal reason={gate.reason} onClose={gate.close} />
     </div>
   );
 }

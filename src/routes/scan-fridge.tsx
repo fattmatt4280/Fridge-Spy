@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useRef, useState } from "react";
-import { ArrowLeft, Camera, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, Camera, Loader2, Lock } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { scanFridge } from "@/lib/claude.functions";
@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { categoryEmoji, isoDateInDays, suggestExpiryDays } from "@/lib/expiry";
 import { toast } from "sonner";
+import { usePremium, useUpgradeGate } from "@/hooks/usePremium";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 export const Route = createFileRoute("/scan-fridge")({
   head: () => ({ meta: [{ title: "Scan Fridge — FridgeSpy" }] }),
@@ -48,9 +50,13 @@ function ScanFridgePage() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const scanFn = useServerFn(scanFridge);
+  const { isPremium } = usePremium();
+  const gate = useUpgradeGate();
 
   const [preview, setPreview] = useState<string | null>(null);
   const [items, setItems] = useState<Detected[] | null>(null);
+
+  useEffect(() => { if (!isPremium) gate.open("fridge-scan"); /* eslint-disable-next-line */ }, [isPremium]);
 
   const scan = useMutation({
     mutationFn: async (file: File) => {
@@ -122,8 +128,8 @@ function ScanFridgePage() {
               <p className="px-6 text-center text-sm">Point at your fridge shelf and tap capture.</p>
             </div>
           </div>
-          <button onClick={() => fileRef.current?.click()} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-primary-foreground shadow-lg shadow-primary/20">
-            <Camera size={18}/> Capture fridge photo
+          <button onClick={() => isPremium ? fileRef.current?.click() : gate.open("fridge-scan")} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-primary-foreground shadow-lg shadow-primary/20">
+            {isPremium ? <><Camera size={18}/> Capture fridge photo</> : <><Lock size={18}/> Unlock Fridge Scan</>}
           </button>
         </div>
       )}
@@ -181,6 +187,8 @@ function ScanFridgePage() {
           )}
         </div>
       )}
+
+      <UpgradeModal reason={gate.reason} onClose={gate.close} />
     </div>
   );
 }

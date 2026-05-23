@@ -131,19 +131,32 @@ function InventoryPage() {
           const status = expiryStatus(item.expiry_date);
           return (
             <div key={item.id} className="glass-card flex items-center gap-3 p-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-background/40 text-2xl">
-                {item.emoji || categoryEmoji(item.name, item.category)}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="truncate text-sm font-semibold">{item.name}</div>
-                  <div className={`text-xs font-bold ${expiryColorClass(status)}`}>{expiryLabel(item.expiry_date)}</div>
+              <Link
+                to="/item/$id"
+                params={{ id: item.id }}
+                className="flex min-w-0 flex-1 items-center gap-3"
+              >
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-background/40 text-2xl">
+                  {item.emoji || categoryEmoji(item.name, item.category)}
                 </div>
-                <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
-                  <span className="rounded-full bg-background/50 px-2 py-0.5 capitalize">{item.location}</span>
-                  {item.brand && <span className="truncate">{item.brand}</span>}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="truncate text-sm font-semibold">{item.name}</div>
+                    <div className={`text-xs font-bold ${expiryColorClass(status)}`}>{expiryLabel(item.expiry_date)}</div>
+                  </div>
+                  <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
+                    <span className="rounded-full bg-background/50 px-2 py-0.5 capitalize">{item.location}</span>
+                    {item.brand && <span className="truncate">{item.brand}</span>}
+                  </div>
                 </div>
-                <div className="mt-2 flex items-center justify-between">
+              </Link>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
                   <div className="flex items-center gap-1">
                     <button onClick={() => adjust.mutate({ id: item.id, qty: Math.max(0, Number(item.quantity) - 1) })}
                       className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background/40 hover:border-primary"><Minus size={14}/></button>

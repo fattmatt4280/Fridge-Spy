@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Bell, Camera, Receipt, Plus, ChefHat, Sparkles } from "lucide-react";
 import { Logo } from "@/components/ui-fs/Logo";
 import { supabase } from "@/integrations/supabase/client";

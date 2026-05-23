@@ -32,8 +32,10 @@ function Onboarding() {
   }, [i]);
 
   const finish = (dest: "/login" | "/") => {
-    try { localStorage.setItem(ONBOARD_KEY, "1"); } catch {}
-    // Best-effort notification permission request
+    try {
+      localStorage.setItem(ONBOARD_KEY, "1");
+      if (dest === "/") localStorage.setItem("fridgespy.guest", "1");
+    } catch {}
     if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
       try { Notification.requestPermission().catch(() => {}); } catch {}
     }

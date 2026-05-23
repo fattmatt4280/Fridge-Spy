@@ -64,6 +64,38 @@ function ShoppingPage() {
     mutationFn: async () => { await supabase.from("shopping_list").delete().eq("checked", true).eq("user_id", user!.id); },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["shopping"] }); toast.success("Cleared checked items"); },
   });
+  const shoppingDone = useMutation({
+    mutationFn: async () => {
+      const checked = items.filter(i => i.checked);
+      if (!checked.length) throw new Error("Nothing checked");
+      const rows = checked.map(i => ({
+        user_id: user!.id,
+        name: i.name,
+        category: i.category ?? null,
+        emoji: categoryEmoji(i.name, i.category),
+        quantity: i.quantity ?? 1,
+        unit: i.unit ?? "each",
+        location: "fridge",
+        expiry_date: isoDateInDays(suggestExpiryDays(i.category, i.name)),
+      }));
+      const { error: insErr } = await supabase.from("items").insert(rows);
+      if (insErr) throw insErr;
+      const ids = checked.map(i => i.id);
+      const { error: delErr } = await supabase.from("shopping_list").delete().in("id", ids);
+      if (delErr) throw delErr;
+      await supabase.from("activity_log").insert({
+        user_id: user!.id, kind: "shopping", message: `Bought ${rows.length} items`,
+      });
+      return rows.length;
+    },
+    onSuccess: (n) => {
+      qc.invalidateQueries({ queryKey: ["shopping"] });
+      qc.invalidateQueries({ queryKey: ["items"] });
+      qc.invalidateQueries({ queryKey: ["activity"] });
+      toast.success(`Moved ${n} items to inventory`);
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
 
   async function share() {
     const text = items.filter(i => !i.checked).map(i => { const q = i.quantity ?? 1; return `• ${i.name}${q>1?` x${q}`:""}`; }).join("\n");

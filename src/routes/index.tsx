@@ -4,7 +4,8 @@ import { Bell, Camera, Receipt, Plus, ChefHat, Sparkles } from "lucide-react";
 import { Logo } from "@/components/ui-fs/Logo";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { daysUntil, expiryColorClass, expiryLabel, expiryStatus, categoryEmoji } from "@/lib/expiry";
+import { daysUntil, expiryLabel, expiryStatus, categoryEmoji } from "@/lib/expiry";
+import { HomeScoreCard } from "@/components/HomeScoreCard";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [{ title: "FridgeSpy — The Spy Report" }] }),

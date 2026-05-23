@@ -150,30 +150,23 @@ function InventoryPage() {
                   </div>
                 </div>
               </Link>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-                  <div className="flex items-center gap-1">
-                    <button onClick={() => adjust.mutate({ id: item.id, qty: Math.max(0, Number(item.quantity) - 1) })}
-                      className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background/40 hover:border-primary"><Minus size={14}/></button>
-                    <span className="w-10 text-center text-sm font-bold tabular-nums">{item.quantity} <span className="text-[10px] font-normal text-muted-foreground">{item.unit}</span></span>
-                    <button onClick={() => adjust.mutate({ id: item.id, qty: Number(item.quantity) + 1 })}
-                      className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background/40 hover:border-primary"><Plus size={14}/></button>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button onClick={() => toShopping.mutate(item)}
-                      className="rounded-md p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary" aria-label="Add to shopping">
-                      <ShoppingCart size={16} />
-                    </button>
-                    <button onClick={() => del.mutate(item.id)}
-                      className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" aria-label="Delete">
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
+              <div className="flex shrink-0 flex-col items-end gap-1.5">
+                <div className="flex items-center gap-1">
+                  <button onClick={() => adjust.mutate({ id: item.id, qty: Math.max(0, Number(item.quantity) - 1) })}
+                    className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background/40 hover:border-primary"><Minus size={14}/></button>
+                  <span className="w-10 text-center text-sm font-bold tabular-nums">{item.quantity}</span>
+                  <button onClick={() => adjust.mutate({ id: item.id, qty: Number(item.quantity) + 1 })}
+                    className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background/40 hover:border-primary"><Plus size={14}/></button>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => toShopping.mutate(item)}
+                    className="rounded-md p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary" aria-label="Add to shopping">
+                    <ShoppingCart size={16} />
+                  </button>
+                  <button onClick={() => del.mutate(item.id)}
+                    className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" aria-label="Delete">
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               </div>
             </div>
@@ -183,3 +176,4 @@ function InventoryPage() {
     </div>
   );
 }
+

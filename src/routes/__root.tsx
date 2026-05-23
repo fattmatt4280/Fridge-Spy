@@ -90,7 +90,20 @@ function RootComponent() {
       <AppShell>
         <Outlet />
       </AppShell>
-      <Toaster theme="dark" position="top-center" richColors />
+      <Toaster
+        theme="dark"
+        position="bottom-center"
+        offset={96}
+        duration={2500}
+        toastOptions={{
+          style: {
+            background: "#1c2333",
+            color: "var(--color-foreground)",
+            border: "1px solid var(--color-border)",
+            borderLeft: "3px solid var(--color-primary)",
+          },
+        }}
+      />
     </QueryClientProvider>
   );
 }

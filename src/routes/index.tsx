@@ -74,6 +74,9 @@ function HomePage() {
         </div>
       </section>
 
+      {/* FridgeSpy Score + waste saved */}
+      <HomeScoreCard />
+
       {/* Quick actions */}
       <section className="mt-4 grid grid-cols-3 gap-2">
         <QuickAction to="/scan-receipt" icon={<Receipt size={20} />} label="Snap Receipt" />

@@ -53,6 +53,10 @@ function RecipesPage() {
   const generate = useMutation({
     mutationFn: async () => {
       if (items.length === 0) throw new Error("Add items to your inventory first.");
+      if (!isPremium && recipesLeft <= 0) {
+        gate.open("recipe-daily");
+        throw new Error("limit");
+      }
       const expiring: { name: string }[] = [];
       const other: { name: string }[] = [];
       for (const i of items) {
@@ -60,13 +64,19 @@ function RecipesPage() {
         if (d !== null && d <= 7) expiring.push({ name: i.name });
         else other.push({ name: i.name });
       }
-      return await genFn({ data: { expiring, other } });
+      const res = await genFn({ data: { expiring, other } });
+      // Log usage for daily quota tracking.
+      await supabase.from("activity_log").insert({
+        user_id: user!.id, kind: "recipe-gen", message: "Generated recipes",
+      });
+      qc.invalidateQueries({ queryKey: ["recipes-today"] });
+      return res;
     },
     onSuccess: (res) => {
       setRecipes(res.recipes as GeneratedRecipe[]);
       if (!res.recipes?.length) toast.error("No recipes returned. Try again.");
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => { if (e?.message !== "limit") toast.error(e.message); },
   });
 
   const save = useMutation({

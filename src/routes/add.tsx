@@ -67,6 +67,10 @@ function AddPage() {
     mutationFn: async () => {
       if (!user) throw new Error("Not signed in");
       if (!name.trim()) throw new Error("Name required");
+      if (!isPremium && itemsLeft <= 0) {
+        gate.open("item-cap");
+        throw new Error("Free tier limit reached");
+      }
       const { error } = await supabase.from("items").insert({
         user_id: user.id,
         name: name.trim(),

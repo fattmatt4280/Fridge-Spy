@@ -34,6 +34,8 @@ function RecipesPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const genFn = useServerFn(generateRecipes);
+  const { isPremium, recipesLeft, recipesToday } = usePremium();
+  const gate = useUpgradeGate();
   const [recipes, setRecipes] = useState<GeneratedRecipe[] | null>(null);
   const [expanded, setExpanded] = useState<number | null>(null);
 

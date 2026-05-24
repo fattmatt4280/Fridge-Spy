@@ -7,9 +7,10 @@ import { FREE_ITEM_CAP, FREE_RECIPE_PER_DAY, type LimitReason } from "@/lib/limi
 export function usePremium() {
   const { user } = useAuth();
 
-  const { data: profile } = useQuery({
+  const { data: profile, isLoading: profileLoading, isFetching: profileFetching } = useQuery({
     queryKey: ["profile", user?.id],
     enabled: !!user,
+    staleTime: 60_000,
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")

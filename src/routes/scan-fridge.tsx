@@ -73,12 +73,16 @@ function ScanFridgePage() {
       return await scanFn({ data: { imageBase64: base64, mediaType } });
     },
     onSuccess: (res) => {
-      const arr = (res.items ?? []).map((i: any) => ({ ...i, _keep: true }));
+      const arr = (res.items ?? []).map((i: any) => ({ ...i, _keep: true, _location: guessLocation(i.category, i.name) as Loc }));
       setItems(arr);
       if (!arr.length) toast.error("No items detected. Try a clearer shot.");
     },
     onError: (e: any) => toast.error(e.message ?? "Scan failed"),
   });
+
+  function setAllLocations(loc: Loc) {
+    setItems(arr => arr?.map(x => ({ ...x, _location: loc })) ?? null);
+  }
 
   const save = useMutation({
     mutationFn: async () => {
@@ -91,7 +95,7 @@ function ScanFridgePage() {
         emoji: i.emoji ?? categoryEmoji(i.name, i.category),
         quantity: i.estimated_quantity ?? i.quantity ?? 1,
         unit: i.unit ?? "each",
-        location: "fridge",
+        location: i._location ?? "fridge",
         expiry_date: isoDateInDays(suggestExpiryDays(i.category, i.name)),
       }));
       if (!rows.length) throw new Error("Nothing selected");

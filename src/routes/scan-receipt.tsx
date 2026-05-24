@@ -387,7 +387,8 @@ function ReviewWizard({
             <div className="grid grid-cols-4 gap-2">
               {(["fridge","freezer","pantry","counter"] as const).map(l => (
                 <button key={l} onClick={() => onUpdate(i, { _location: l })}
-                  className={`rounded-xl py-3 text-[10px] font-bold uppercase tracking-wider ${(it._location ?? "fridge")===l?"bg-primary text-primary-foreground":"border border-border bg-background/40 text-muted-foreground"}`}>
+                  className={`flex flex-col items-center gap-1 rounded-xl py-3 text-[10px] font-bold uppercase tracking-wider transition ${(it._location ?? "fridge")===l?"bg-primary text-primary-foreground":"border border-border bg-background/40 text-muted-foreground"}`}>
+                  <span className="text-lg">{LOC_META[l].emoji}</span>
                   {l}
                 </button>
               ))}

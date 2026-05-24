@@ -168,14 +168,22 @@ function HomePage() {
   );
 }
 
-function SummaryStat({ value, label, tone }: { value: number; label: string; tone: "primary" | "warning" | "destructive" }) {
+function SummaryStat({ value, label, tone, to, filter }: { value: number; label: string; tone: "primary" | "warning" | "destructive"; to?: string; filter?: "expiring" | "expired" }) {
   const color = tone === "primary" ? "text-primary" : tone === "warning" ? "text-warning" : "text-destructive";
-  return (
-    <div className="rounded-xl bg-background/40 p-3 text-center">
+  const inner = (
+    <>
       <div className={`text-3xl font-extrabold tabular-nums ${color}`}>{value}</div>
       <div className="mt-0.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</div>
-    </div>
+    </>
   );
+  if (to) {
+    return (
+      <Link to={to as any} search={filter ? { filter } as any : undefined} className="rounded-xl bg-background/40 p-3 text-center transition active:scale-95 hover:bg-background/60">
+        {inner}
+      </Link>
+    );
+  }
+  return <div className="rounded-xl bg-background/40 p-3 text-center">{inner}</div>;
 }
 
 function QuickAction({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) {

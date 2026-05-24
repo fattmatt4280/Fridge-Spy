@@ -16,6 +16,7 @@ export const Route = createFileRoute("/scan-receipt")({
   component: ScanReceiptPage,
 });
 
+type Loc = "fridge" | "freezer" | "pantry";
 type ParsedItem = {
   name: string;
   quantity: number;
@@ -25,7 +26,15 @@ type ParsedItem = {
   expiry_days?: number;
   emoji?: string;
   _keep?: boolean;
+  _location?: Loc;
 };
+
+function guessLocation(category?: string, name?: string): Loc {
+  const s = `${category ?? ""} ${name ?? ""}`.toLowerCase();
+  if (/(frozen|ice cream|freezer)/.test(s)) return "freezer";
+  if (/(bread|pasta|rice|cereal|can|snack|chip|cookie|flour|sugar|oil|spice|grain|bean|nut|coffee|tea)/.test(s)) return "pantry";
+  return "fridge";
+}
 
 function ScanReceiptPage() {
   const fileRef = useRef<HTMLInputElement>(null);
@@ -48,7 +57,7 @@ function ScanReceiptPage() {
       return await scanFn({ data: { imageBase64: base64, mediaType } });
     },
     onSuccess: (res) => {
-      const arr = (res.items ?? []).map((i: any) => ({ ...i, _keep: true }));
+      const arr = (res.items ?? []).map((i: any) => ({ ...i, _keep: true, _location: guessLocation(i.category, i.name) as Loc }));
       setItems(arr);
       if (arr.length === 0) toast.error("Couldn't find any items on that receipt.");
     },
@@ -57,6 +66,10 @@ function ScanReceiptPage() {
 
   function daysFor(i: ParsedItem) {
     return i.estimated_expiry_days ?? i.expiry_days ?? suggestExpiryDays(i.category, i.name);
+  }
+
+  function setAllLocations(loc: Loc) {
+    setItems(arr => arr?.map(x => ({ ...x, _location: loc })) ?? null);
   }
 
   const save = useMutation({
@@ -69,7 +82,7 @@ function ScanReceiptPage() {
         emoji: i.emoji ?? categoryEmoji(i.name, i.category),
         quantity: i.quantity ?? 1,
         unit: i.unit ?? "each",
-        location: "fridge",
+        location: i._location ?? "fridge",
         expiry_date: isoDateInDays(daysFor(i)),
       }));
       if (!rows.length) throw new Error("Nothing selected");
@@ -149,20 +162,40 @@ function ScanReceiptPage() {
                 <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Detected items ({keepCount})</h2>
                 <button onClick={() => fileRef.current?.click()} className="text-xs font-semibold text-primary">Retake</button>
               </div>
+              <div className="mb-3 flex items-center gap-1.5 rounded-xl border border-border bg-surface/60 p-1.5">
+                <span className="px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Set all</span>
+                {(["fridge","freezer","pantry"] as const).map(l => (
+                  <button key={l} onClick={() => setAllLocations(l)}
+                    className="flex-1 rounded-lg py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground hover:bg-background/60 hover:text-foreground">
+                    {l}
+                  </button>
+                ))}
+              </div>
               <ul className="space-y-1.5">
                 {items.map((it, idx) => (
-                  <li key={idx} className="glass-card flex items-center gap-3 p-3">
-                    <input type="checkbox" checked={!!it._keep}
-                      onChange={e => setItems(arr => arr!.map((x,i)=>i===idx?{...x,_keep:e.target.checked}:x))}
-                      className="h-5 w-5 accent-[color:var(--color-primary)]" />
-                    <div className="text-2xl">{it.emoji ?? categoryEmoji(it.name, it.category)}</div>
-                    <div className="flex-1">
-                      <input value={it.name} onChange={e => setItems(arr=>arr!.map((x,i)=>i===idx?{...x,name:e.target.value}:x))}
-                        className="w-full bg-transparent text-sm font-semibold outline-none" />
-                      <div className="text-xs text-muted-foreground">{it.category ?? "—"} · expires in {daysFor(it)}d</div>
+                  <li key={idx} className="glass-card flex flex-col gap-2 p-3">
+                    <div className="flex items-center gap-3">
+                      <input type="checkbox" checked={!!it._keep}
+                        onChange={e => setItems(arr => arr!.map((x,i)=>i===idx?{...x,_keep:e.target.checked}:x))}
+                        className="h-5 w-5 accent-[color:var(--color-primary)]" />
+                      <div className="text-2xl">{it.emoji ?? categoryEmoji(it.name, it.category)}</div>
+                      <div className="flex-1">
+                        <input value={it.name} onChange={e => setItems(arr=>arr!.map((x,i)=>i===idx?{...x,name:e.target.value}:x))}
+                          className="w-full bg-transparent text-sm font-semibold outline-none" />
+                        <div className="text-xs text-muted-foreground">{it.category ?? "—"} · expires in {daysFor(it)}d</div>
+                      </div>
+                      <input type="number" min={0} value={it.quantity} onChange={e=>setItems(arr=>arr!.map((x,i)=>i===idx?{...x,quantity:Number(e.target.value)}:x))}
+                        className="w-14 rounded-md border border-border bg-background/40 px-2 py-1 text-center text-sm" />
                     </div>
-                    <input type="number" min={0} value={it.quantity} onChange={e=>setItems(arr=>arr!.map((x,i)=>i===idx?{...x,quantity:Number(e.target.value)}:x))}
-                      className="w-14 rounded-md border border-border bg-background/40 px-2 py-1 text-center text-sm" />
+                    <div className="grid grid-cols-3 gap-1 pl-8">
+                      {(["fridge","freezer","pantry"] as const).map(l => (
+                        <button key={l} type="button"
+                          onClick={() => setItems(arr=>arr!.map((x,i)=>i===idx?{...x,_location:l}:x))}
+                          className={`rounded-lg py-1.5 text-[10px] font-bold uppercase tracking-wider ${(it._location ?? "fridge")===l?"bg-primary text-primary-foreground":"border border-border bg-background/40 text-muted-foreground"}`}>
+                          {l}
+                        </button>
+                      ))}
+                    </div>
                   </li>
                 ))}
               </ul>

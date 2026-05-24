@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ChefHat, Minus, Plus, ShoppingCart, Trash2, Pencil, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { categoryEmoji, daysUntil, expiryColorClass, expiryLabel, expiryStatus, isoDateInDays } from "@/lib/expiry";
+import { categoryEmoji, daysUntil, expiryColorClass, expiryLabel, expiryStatus, isoDateInDays, suggestExpiryDays } from "@/lib/expiry";
 import { toast } from "sonner";
 import { ScanExpiryButton } from "@/components/ScanExpiryButton";
 

@@ -81,7 +81,7 @@ function InventoryPage() {
       return da - db;
     });
     return list;
-  }, [items, tab, q, sort]);
+  }, [items, tab, q, sort, statusFilter]);
 
   const adjust = useMutation({
     mutationFn: async ({ id, qty }: { id: string; qty: number }) => {

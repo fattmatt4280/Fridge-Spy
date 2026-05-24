@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X, Check, Sparkles } from "lucide-react";
 import { PREMIUM_FEATURES, REASON_COPY, type LimitReason } from "@/lib/limits";
 import { toast } from "sonner";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { useAuth } from "@/hooks/useAuth";
+import { usePremium } from "@/hooks/usePremium";
 
 type Plan = "monthly" | "yearly" | "lifetime";
 
@@ -23,7 +24,13 @@ export function UpgradeModal({
   const [plan, setPlan] = useState<Plan>("yearly");
   const { openCheckout, loading } = usePaddleCheckout();
   const { user } = useAuth();
-  if (!reason) return null;
+  const { isPremium } = usePremium();
+
+  useEffect(() => {
+    if (reason && isPremium) onClose();
+  }, [isPremium, onClose, reason]);
+
+  if (!reason || isPremium) return null;
   const copy = REASON_COPY[reason];
 
   async function startCheckout() {

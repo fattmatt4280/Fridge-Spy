@@ -176,6 +176,39 @@ export type Database = {
         }
         Relationships: []
       }
+      scan_usage: {
+        Row: {
+          bonus: number
+          created_at: string
+          id: string
+          period_end: string
+          period_start: string
+          updated_at: string
+          used: number
+          user_id: string
+        }
+        Insert: {
+          bonus?: number
+          created_at?: string
+          id?: string
+          period_end: string
+          period_start: string
+          updated_at?: string
+          used?: number
+          user_id: string
+        }
+        Update: {
+          bonus?: number
+          created_at?: string
+          id?: string
+          period_end?: string
+          period_start?: string
+          updated_at?: string
+          used?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       shopping_list: {
         Row: {
           category: string | null

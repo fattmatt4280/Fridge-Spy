@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Search, Trash2, ShoppingCart, Minus, Plus } from "lucide-react";
+import { Search, Trash2, ShoppingCart, Minus, Plus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { categoryEmoji, daysUntil, expiryColorClass, expiryLabel, expiryStatus } from "@/lib/expiry";
@@ -10,9 +10,17 @@ import { EmptyState, SkeletonRow } from "@/components/EmptyState";
 
 type Location = "all" | "fridge" | "freezer" | "pantry" | "counter";
 type SortKey = "expiry" | "name" | "category" | "location";
+type StatusFilter = "all" | "expiring" | "expired";
+
+const LOC_EMOJI: Record<Exclude<Location, "all">, string> = {
+  fridge: "🧊", freezer: "❄️", pantry: "🥫", counter: "🍎",
+};
 
 export const Route = createFileRoute("/inventory")({
   head: () => ({ meta: [{ title: "Inventory — FridgeSpy" }] }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    filter: (s.filter === "expiring" || s.filter === "expired") ? s.filter : undefined,
+  }),
   component: InventoryPage,
 });
 

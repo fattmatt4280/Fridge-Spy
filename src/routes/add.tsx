@@ -187,12 +187,16 @@ function AddPage() {
 
       <Field label="Location">
         <div className="mt-1 grid grid-cols-4 gap-1.5">
-          {(["fridge","freezer","pantry","counter"] as const).map(l => (
-            <button key={l} type="button" onClick={() => { setLocation(l); recomputeExpiry(category, name, l); }}
-              className={`rounded-xl py-2 text-xs font-bold uppercase tracking-wider ${location===l?"bg-primary text-primary-foreground":"border border-border bg-surface text-muted-foreground"}`}>
-              {l}
-            </button>
-          ))}
+          {(["fridge","freezer","pantry","counter"] as const).map(l => {
+            const emoji = l === "fridge" ? "🧊" : l === "freezer" ? "❄️" : l === "pantry" ? "🥫" : "🍎";
+            return (
+              <button key={l} type="button" onClick={() => { setLocation(l); recomputeExpiry(category, name, l); }}
+                className={`flex flex-col items-center gap-0.5 rounded-xl py-2 text-[10px] font-bold uppercase tracking-wider transition ${location===l?"bg-primary text-primary-foreground":"border border-border bg-surface text-muted-foreground hover:border-primary/40"}`}>
+                <span className="text-base">{emoji}</span>
+                {l}
+              </button>
+            );
+          })}
         </div>
       </Field>
 
@@ -201,7 +205,15 @@ function AddPage() {
           <input type="date" value={expiry} onChange={e=>setExpiry(e.target.value)} className="input flex-1"/>
           <ScanExpiryButton onDate={setExpiry} />
         </div>
-        <p className="mt-1 text-[11px] text-muted-foreground">Type it in, or scan the printed best-by date on the package.</p>
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          {expiry ? (() => {
+            const days = Math.round((new Date(expiry).getTime() - new Date().setHours(0,0,0,0)) / 86400000);
+            if (days < 0) return `⚠️ Already expired ${Math.abs(days)} day${Math.abs(days)===1?"":"s"} ago`;
+            if (days === 0) return "⏰ Expires today";
+            if (days === 1) return "⏰ Expires tomorrow";
+            return `✨ Fresh for ~${days} days based on ${location}`;
+          })() : "Type it in, or scan the printed best-by date on the package."}
+        </p>
       </Field>
       <Field label="Notes"><textarea value={notes} onChange={e=>setNotes(e.target.value)} rows={2} className="input"/></Field>
 

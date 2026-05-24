@@ -9,6 +9,7 @@ import { categoryEmoji, isoDateInDays, suggestExpiryDays } from "@/lib/expiry";
 import { toast } from "sonner";
 import { usePremium, useUpgradeGate } from "@/hooks/usePremium";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { ScanExpiryButton } from "@/components/ScanExpiryButton";
 
 export const Route = createFileRoute("/add")({
   head: () => ({ meta: [{ title: "Add Item — FridgeSpy" }] }),
@@ -184,7 +185,13 @@ function AddPage() {
         </div>
       </Field>
 
-      <Field label="Expiry date"><input type="date" value={expiry} onChange={e=>setExpiry(e.target.value)} className="input"/></Field>
+      <Field label="Expiry date">
+        <div className="flex gap-2">
+          <input type="date" value={expiry} onChange={e=>setExpiry(e.target.value)} className="input flex-1"/>
+          <ScanExpiryButton onDate={setExpiry} />
+        </div>
+        <p className="mt-1 text-[11px] text-muted-foreground">Type it in, or scan the printed best-by date on the package.</p>
+      </Field>
       <Field label="Notes"><textarea value={notes} onChange={e=>setNotes(e.target.value)} rows={2} className="input"/></Field>
 
       <button

@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { categoryEmoji, daysUntil, expiryColorClass, expiryLabel, expiryStatus, isoDateInDays } from "@/lib/expiry";
 import { toast } from "sonner";
+import { ScanExpiryButton } from "@/components/ScanExpiryButton";
 
 export const Route = createFileRoute("/item/$id")({
   head: () => ({ meta: [{ title: "Item — FridgeSpy" }] }),
@@ -189,8 +190,11 @@ function ItemDetailPage() {
         {editing && (
           <div className="mt-3 grid grid-cols-1 gap-2">
             <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Expiry date</label>
-            <input type="date" value={draftExpiry} onChange={e => setDraftExpiry(e.target.value)}
-              className="rounded-xl border border-border bg-background/40 px-3 py-2.5 outline-none focus:border-primary" />
+            <div className="flex gap-2">
+              <input type="date" value={draftExpiry} onChange={e => setDraftExpiry(e.target.value)}
+                className="flex-1 rounded-xl border border-border bg-background/40 px-3 py-2.5 outline-none focus:border-primary" />
+              <ScanExpiryButton onDate={setDraftExpiry} />
+            </div>
             <label className="mt-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Location</label>
             <div className="grid grid-cols-3 gap-1.5">
               {(["fridge","freezer","pantry"] as const).map(l => (

@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X, Check, Sparkles } from "lucide-react";
 import { PREMIUM_FEATURES, REASON_COPY, type LimitReason } from "@/lib/limits";
 import { toast } from "sonner";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { useAuth } from "@/hooks/useAuth";
+import { usePremium } from "@/hooks/usePremium";
 
 type Plan = "monthly" | "yearly" | "lifetime";
 
@@ -23,7 +24,13 @@ export function UpgradeModal({
   const [plan, setPlan] = useState<Plan>("yearly");
   const { openCheckout, loading } = usePaddleCheckout();
   const { user } = useAuth();
-  if (!reason) return null;
+  const { isPremium } = usePremium();
+
+  useEffect(() => {
+    if (reason && isPremium) onClose();
+  }, [isPremium, onClose, reason]);
+
+  if (!reason || isPremium) return null;
   const copy = REASON_COPY[reason];
 
   async function startCheckout() {
@@ -33,15 +40,12 @@ export function UpgradeModal({
         customerEmail: user?.email,
         userId: user?.id,
       });
-    } catch (e: any) {
-      toast.error(e?.message || "Couldn't start checkout");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Couldn't start checkout");
     }
   }
 
-  const ctaLabel =
-    plan === "lifetime"
-      ? "Get Lifetime — $79"
-      : "Start 7-Day Free Trial";
+  const ctaLabel = plan === "lifetime" ? "Get Lifetime — $79" : "Start 7-Day Free Trial";
 
   return (
     <div
@@ -51,9 +55,12 @@ export function UpgradeModal({
       onClick={onClose}
     >
       <div
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-md overflow-hidden rounded-3xl p-[1.5px]"
-        style={{ background: "linear-gradient(135deg, var(--color-primary), oklch(0.78 0.13 195) 50%, var(--color-primary))" }}
+        style={{
+          background:
+            "linear-gradient(135deg, var(--color-primary), oklch(0.78 0.13 195) 50%, var(--color-primary))",
+        }}
       >
         <div className="rounded-[calc(1.5rem-1.5px)] bg-surface p-6 pt-7">
           <button
@@ -78,7 +85,7 @@ export function UpgradeModal({
           </div>
 
           <ul className="mt-4 space-y-2">
-            {PREMIUM_FEATURES.map(f => (
+            {PREMIUM_FEATURES.map((f) => (
               <li key={f} className="flex items-start gap-2.5 text-sm">
                 <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary">
                   <Check size={13} strokeWidth={3} />
@@ -90,9 +97,29 @@ export function UpgradeModal({
 
           {/* Pricing toggle */}
           <div className="mt-5 grid grid-cols-3 gap-2 rounded-2xl border border-border bg-background/40 p-1.5">
-            <PlanPill active={plan === "monthly"} onClick={() => setPlan("monthly")} title="Monthly" price="$4.99" unit="/mo" />
-            <PlanPill active={plan === "yearly"} onClick={() => setPlan("yearly")} title="Yearly" price="$34.99" unit="/yr" badge="Save 42%" />
-            <PlanPill active={plan === "lifetime"} onClick={() => setPlan("lifetime")} title="Lifetime" price="$79" unit=" once" badge="Founder" />
+            <PlanPill
+              active={plan === "monthly"}
+              onClick={() => setPlan("monthly")}
+              title="Monthly"
+              price="$4.99"
+              unit="/mo"
+            />
+            <PlanPill
+              active={plan === "yearly"}
+              onClick={() => setPlan("yearly")}
+              title="Yearly"
+              price="$34.99"
+              unit="/yr"
+              badge="Save 42%"
+            />
+            <PlanPill
+              active={plan === "lifetime"}
+              onClick={() => setPlan("lifetime")}
+              title="Lifetime"
+              price="$79"
+              unit=" once"
+              badge="Founder"
+            />
           </div>
 
           {plan === "lifetime" && (
@@ -108,7 +135,10 @@ export function UpgradeModal({
           >
             {loading ? "Opening checkout…" : ctaLabel}
           </button>
-          <button onClick={onClose} className="mt-2 w-full py-2 text-center text-sm text-muted-foreground hover:text-foreground">
+          <button
+            onClick={onClose}
+            className="mt-2 w-full py-2 text-center text-sm text-muted-foreground hover:text-foreground"
+          >
             Maybe Later
           </button>
         </div>
@@ -118,13 +148,27 @@ export function UpgradeModal({
 }
 
 function PlanPill({
-  active, onClick, title, price, unit, badge,
-}: { active: boolean; onClick: () => void; title: string; price: string; unit: string; badge?: string }) {
+  active,
+  onClick,
+  title,
+  price,
+  unit,
+  badge,
+}: {
+  active: boolean;
+  onClick: () => void;
+  title: string;
+  price: string;
+  unit: string;
+  badge?: string;
+}) {
   return (
     <button
       onClick={onClick}
       className={`relative rounded-xl px-2 py-2.5 text-left transition ${
-        active ? "bg-primary text-primary-foreground shadow-md shadow-primary/30" : "text-muted-foreground hover:text-foreground"
+        active
+          ? "bg-primary text-primary-foreground shadow-md shadow-primary/30"
+          : "text-muted-foreground hover:text-foreground"
       }`}
     >
       <div className="text-[10px] font-bold uppercase tracking-wider opacity-80">{title}</div>
@@ -133,7 +177,9 @@ function PlanPill({
         <span className="text-[10px] opacity-80">{unit}</span>
       </div>
       {badge && (
-        <span className={`absolute -top-2 right-1.5 rounded-full px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider ${active ? "bg-background/30" : "bg-primary text-primary-foreground"}`}>
+        <span
+          className={`absolute -top-2 right-1.5 rounded-full px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider ${active ? "bg-background/30" : "bg-primary text-primary-foreground"}`}
+        >
           {badge}
         </span>
       )}

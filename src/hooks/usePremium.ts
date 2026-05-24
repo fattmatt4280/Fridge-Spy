@@ -53,6 +53,7 @@ export function usePremium() {
 
   return {
     isPremium,
+    isPremiumLoading: !!user && (profileLoading || (profile === undefined && profileFetching)),
     itemCount,
     itemsLeft,
     recipesToday,

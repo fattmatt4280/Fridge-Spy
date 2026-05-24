@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { ChevronLeft, Sparkles, LogOut, ExternalLink } from "lucide-react";
+import { ChevronLeft, Sparkles, LogOut, ExternalLink, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,6 +8,8 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { createPortalSession } from "@/utils/payments.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { useScanQuota } from "@/hooks/useScanQuota";
+import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 
 export const Route = createFileRoute("/account")({
   head: () => ({ meta: [{ title: "FridgeSpy — Account" }] }),
@@ -19,7 +21,22 @@ function AccountPage() {
   const navigate = useNavigate();
   const { subscription, isActive, isLifetime, env } = useSubscription();
   const portalFn = useServerFn(createPortalSession);
+  const { data: quota } = useScanQuota();
+  const { openCheckout, loading: buyingPack } = usePaddleCheckout();
   const [opening, setOpening] = useState(false);
+
+  async function buyPack() {
+    try {
+      await openCheckout({
+        priceId: "scan_pack_100",
+        customerEmail: user?.email,
+        userId: user?.id,
+        successUrl: `${window.location.origin}/account?pack=success`,
+      });
+    } catch (e: any) {
+      toast.error(e?.message || "Couldn't open checkout");
+    }
+  }
 
   async function openPortal() {
     setOpening(true);
@@ -104,6 +121,53 @@ function AccountPage() {
             </Link>
           ) : null}
         </section>
+
+        <section className="glass-card mt-4 p-5">
+          <div className="flex items-center gap-2">
+            <Camera size={16} className="text-primary" />
+            <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Label scans</div>
+          </div>
+          {quota?.paid ? (
+            <>
+              <div className="mt-2 flex items-baseline justify-between">
+                <div className="text-xl font-extrabold">
+                  {quota.remaining} <span className="text-sm font-medium text-muted-foreground">remaining</span>
+                </div>
+                <span className="stat-pill bg-primary/15 text-primary">
+                  {quota.used} / {quota.included + quota.bonus} used
+                </span>
+              </div>
+              {quota.bonus > 0 && (
+                <p className="mt-1 text-xs text-muted-foreground">Includes {quota.bonus} bonus scans from add-on packs.</p>
+              )}
+              {quota.period_end && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Resets {new Date(quota.period_end).toLocaleDateString()}.
+                </p>
+              )}
+              <button
+                onClick={buyPack}
+                disabled={buyingPack}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-background/40 py-3 text-sm font-semibold transition hover:border-primary/40 disabled:opacity-60"
+              >
+                {buyingPack ? "Opening…" : "Buy 100 more scans · $1"}
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="mt-2 text-sm text-muted-foreground">
+                Label scanning is a Pro feature. Pro includes 100 scans per billing cycle, then $1 per additional 100.
+              </div>
+              <Link
+                to="/"
+                className="mt-3 block w-full rounded-xl bg-primary py-3 text-center text-sm font-bold text-primary-foreground"
+              >
+                Upgrade to Pro
+              </Link>
+            </>
+          )}
+        </section>
+
 
         <button
           onClick={signOut}

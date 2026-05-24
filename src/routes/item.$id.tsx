@@ -171,8 +171,9 @@ function ItemDetailPage() {
                 key={l}
                 onClick={() => {
                   if (item.location === l) return;
-                  update.mutate({ location: l }, {
-                    onSuccess: () => toast.success(`Moved to ${l}`),
+                  const suggested = isoDateInDays(suggestExpiryDays(item.category, item.name, l));
+                  update.mutate({ location: l, expiry_date: suggested }, {
+                    onSuccess: () => toast.success(`Moved to ${l} · expiry updated`),
                   });
                 }}
                 className={`rounded-xl py-2 text-xs font-bold uppercase tracking-wider transition ${

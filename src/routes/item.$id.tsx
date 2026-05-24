@@ -157,10 +157,34 @@ function ItemDetailPage() {
           {item.brand ? `${item.brand} · ` : ""}{item.category || "Uncategorized"}
         </div>
         <div className="mt-3 flex items-center gap-2">
-          <span className="rounded-full bg-background/40 px-3 py-1 text-xs font-semibold capitalize">📍 {item.location}</span>
           <span className={`rounded-full bg-background/40 px-3 py-1 text-xs font-bold ${expiryColorClass(status)}`}>
             {expiryLabel(item.expiry_date)}
           </span>
+        </div>
+
+        {/* Quick location selector */}
+        <div className="mt-4 w-full">
+          <div className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">📍 Storage location</div>
+          <div className="grid grid-cols-3 gap-1.5">
+            {(["fridge","freezer","pantry"] as const).map(l => (
+              <button
+                key={l}
+                onClick={() => {
+                  if (item.location === l) return;
+                  update.mutate({ location: l }, {
+                    onSuccess: () => toast.success(`Moved to ${l}`),
+                  });
+                }}
+                className={`rounded-xl py-2 text-xs font-bold uppercase tracking-wider transition ${
+                  item.location === l
+                    ? "bg-primary text-primary-foreground"
+                    : "border border-border bg-background/40 text-muted-foreground hover:border-primary"
+                }`}
+              >
+                {l === "fridge" ? "🧊" : l === "freezer" ? "❄️" : "🥫"} {l}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

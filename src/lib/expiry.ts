@@ -1,25 +1,52 @@
 // Smart expiry suggestions per category (in days)
-const CATEGORY_EXPIRY: Record<string, number> = {
-  milk: 7, dairy: 10, yogurt: 14, cheese: 21, butter: 30,
-  bread: 5, bakery: 4,
-  meat: 3, poultry: 2, chicken: 2, beef: 4, pork: 4, fish: 2, seafood: 2,
-  produce: 7, vegetable: 7, fruit: 6, salad: 4, leafy: 4,
-  eggs: 28,
-  canned: 730, "canned-goods": 730, jarred: 540,
-  pasta: 730, rice: 730, grains: 540, cereal: 365,
-  frozen: 90, "frozen-meal": 180,
-  sauce: 60, condiment: 180,
-  snacks: 120, chips: 90,
-  beverage: 30, juice: 14, soda: 180,
-  default: 14,
-};
+// Order matters: more specific / shelf-stable keys are checked first so that
+// e.g. "boxed mac and cheese" matches the dry-goods entry before the "cheese"
+// dairy entry.
+const CATEGORY_EXPIRY: Array<[string, number]> = [
+  // Shelf-stable boxed / dry packaged meals (mac & cheese, hamburger helper, etc.)
+  ["mac and cheese", 540], ["mac & cheese", 540], ["macaroni and cheese", 540],
+  ["boxed", 540], ["box mix", 540], ["dry mix", 540], ["mix", 365],
+  ["instant", 540], ["ramen", 365], ["noodle cup", 365],
+  // Canned & jarred
+  ["canned", 730], ["canned-goods", 730], ["jarred", 540], ["jar", 540],
+  // Dry pantry staples
+  ["pasta", 730], ["noodle", 540], ["rice", 730], ["grain", 540],
+  ["cereal", 365], ["oat", 365], ["flour", 365], ["sugar", 730],
+  ["bean", 730], ["lentil", 730],
+  // Snacks & sweets
+  ["snack", 120], ["chips", 90], ["cracker", 180], ["cookie", 120],
+  ["chocolate", 365], ["candy", 365],
+  // Condiments & sauces
+  ["sauce", 60], ["condiment", 180], ["ketchup", 180], ["mustard", 365],
+  ["mayo", 60], ["dressing", 90], ["syrup", 365], ["honey", 730],
+  ["oil", 365], ["vinegar", 730],
+  // Beverages
+  ["soda", 180], ["juice", 14], ["beverage", 30], ["water", 730],
+  ["coffee", 180], ["tea", 365],
+  // Frozen
+  ["frozen-meal", 180], ["frozen", 90],
+  // Dairy
+  ["milk", 7], ["yogurt", 14], ["cheese", 21], ["butter", 30], ["dairy", 10],
+  // Bakery
+  ["bread", 5], ["bagel", 5], ["bakery", 4],
+  // Meat / seafood
+  ["chicken", 2], ["poultry", 2], ["beef", 4], ["pork", 4],
+  ["fish", 2], ["seafood", 2], ["meat", 3],
+  // Produce
+  ["salad", 4], ["leafy", 4], ["lettuce", 5], ["berry", 5],
+  ["fruit", 6], ["vegetable", 7], ["produce", 7],
+  // Eggs
+  ["egg", 28],
+];
+
+const DEFAULT_EXPIRY = 14;
 
 function suggestBaseExpiryDays(category?: string | null, name?: string | null): number {
   const hay = `${category ?? ""} ${name ?? ""}`.toLowerCase();
-  for (const k of Object.keys(CATEGORY_EXPIRY)) {
-    if (hay.includes(k)) return CATEGORY_EXPIRY[k];
+  for (const [k, v] of CATEGORY_EXPIRY) {
+    if (hay.includes(k)) return v;
   }
-  return CATEGORY_EXPIRY.default;
+  return DEFAULT_EXPIRY;
 }
 
 export function suggestExpiryDays(category?: string | null, name?: string | null, location?: string | null): number {

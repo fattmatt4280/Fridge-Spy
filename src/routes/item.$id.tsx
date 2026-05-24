@@ -60,7 +60,7 @@ function ItemDetailPage() {
 
   const [editing, setEditing] = useState(false);
   const [draftExpiry, setDraftExpiry] = useState("");
-  const [draftLocation, setDraftLocation] = useState<"fridge"|"freezer"|"pantry">("fridge");
+  const [draftLocation, setDraftLocation] = useState<"fridge"|"freezer"|"pantry"|"counter">("fridge");
   const [draftNotes, setDraftNotes] = useState("");
   const [nutrition, setNutrition] = useState<Nutrition | null>(null);
 
@@ -165,8 +165,8 @@ function ItemDetailPage() {
         {/* Quick location selector */}
         <div className="mt-4 w-full">
           <div className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">📍 Storage location</div>
-          <div className="grid grid-cols-3 gap-1.5">
-            {(["fridge","freezer","pantry"] as const).map(l => (
+          <div className="grid grid-cols-4 gap-1.5">
+            {(["fridge","freezer","pantry","counter"] as const).map(l => (
               <button
                 key={l}
                 onClick={() => {
@@ -176,13 +176,13 @@ function ItemDetailPage() {
                     onSuccess: () => toast.success(`Moved to ${l} · expiry updated`),
                   });
                 }}
-                className={`rounded-xl py-2 text-xs font-bold uppercase tracking-wider transition ${
+                className={`rounded-xl py-2 text-[10px] font-bold uppercase tracking-wider transition ${
                   item.location === l
                     ? "bg-primary text-primary-foreground"
                     : "border border-border bg-background/40 text-muted-foreground hover:border-primary"
                 }`}
               >
-                {l === "fridge" ? "🧊" : l === "freezer" ? "❄️" : "🥫"} {l}
+                {l === "fridge" ? "🧊" : l === "freezer" ? "❄️" : l === "pantry" ? "🥫" : "🍎"} {l}
               </button>
             ))}
           </div>
@@ -221,8 +221,8 @@ function ItemDetailPage() {
               <ScanExpiryButton onDate={setDraftExpiry} />
             </div>
             <label className="mt-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Location</label>
-            <div className="grid grid-cols-3 gap-1.5">
-              {(["fridge","freezer","pantry"] as const).map(l => (
+            <div className="grid grid-cols-4 gap-1.5">
+              {(["fridge","freezer","pantry","counter"] as const).map(l => (
                 <button key={l} onClick={() => setDraftLocation(l)}
                   className={`rounded-xl py-2 text-xs font-bold uppercase tracking-wider ${draftLocation===l?"bg-primary text-primary-foreground":"border border-border bg-background/40 text-muted-foreground"}`}>
                   {l}

@@ -58,6 +58,13 @@ export function suggestExpiryDays(category?: string | null, name?: string | null
     return Math.min(365, base);
   }
 
+  if (location === "counter") {
+    // Counter = room-temperature storage (potatoes, onions, bananas, bottled water, etc.)
+    // Generally same as base; some items are actually shorter at room temp
+    if (base <= 7) return base;
+    return Math.min(60, base);
+  }
+
   if (location === "pantry") {
     if (base <= 14) return Math.min(730, base * 4);
     if (base <= 60) return Math.min(730, base * 2);

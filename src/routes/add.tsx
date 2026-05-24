@@ -31,7 +31,7 @@ function AddPage() {
   const [emoji, setEmoji] = useState("🍽️");
   const [quantity, setQuantity] = useState(1);
   const [unit, setUnit] = useState("unit");
-  const [location, setLocation] = useState<"fridge"|"freezer"|"pantry">("fridge");
+  const [location, setLocation] = useState<"fridge"|"freezer"|"pantry"|"counter">("fridge");
   const [expiry, setExpiry] = useState(isoDateInDays(suggestExpiryDays(null, null, "fridge")));
   const [notes, setNotes] = useState("");
   const [imageUrl, setImageUrl] = useState<string | undefined>();
@@ -179,8 +179,8 @@ function AddPage() {
       </div>
 
       <Field label="Location">
-        <div className="mt-1 grid grid-cols-3 gap-1.5">
-          {(["fridge","freezer","pantry"] as const).map(l => (
+        <div className="mt-1 grid grid-cols-4 gap-1.5">
+          {(["fridge","freezer","pantry","counter"] as const).map(l => (
             <button key={l} type="button" onClick={() => { setLocation(l); recomputeExpiry(category, name, l); }}
               className={`rounded-xl py-2 text-xs font-bold uppercase tracking-wider ${location===l?"bg-primary text-primary-foreground":"border border-border bg-surface text-muted-foreground"}`}>
               {l}

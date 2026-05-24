@@ -8,7 +8,7 @@ import { categoryEmoji, daysUntil, expiryColorClass, expiryLabel, expiryStatus }
 import { toast } from "sonner";
 import { EmptyState, SkeletonRow } from "@/components/EmptyState";
 
-type Location = "all" | "fridge" | "freezer" | "pantry";
+type Location = "all" | "fridge" | "freezer" | "pantry" | "counter";
 type SortKey = "expiry" | "name" | "category" | "location";
 
 export const Route = createFileRoute("/inventory")({
@@ -92,10 +92,10 @@ function InventoryPage() {
       </div>
 
       {/* Tabs */}
-      <div className="mt-3 grid grid-cols-4 gap-1.5">
-        {(["all","fridge","freezer","pantry"] as Location[]).map(l => (
+      <div className="mt-3 grid grid-cols-5 gap-1.5">
+        {(["all","fridge","freezer","pantry","counter"] as Location[]).map(l => (
           <button key={l} onClick={() => setTab(l)}
-            className={`rounded-xl py-2 text-xs font-bold uppercase tracking-wider transition ${tab===l ? "bg-primary text-primary-foreground" : "border border-border bg-surface text-muted-foreground"}`}>
+            className={`rounded-xl py-2 text-[10px] font-bold uppercase tracking-wider transition ${tab===l ? "bg-primary text-primary-foreground" : "border border-border bg-surface text-muted-foreground"}`}>
             {l}
           </button>
         ))}

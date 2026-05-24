@@ -16,7 +16,7 @@ export const Route = createFileRoute("/scan-receipt")({
   component: ScanReceiptPage,
 });
 
-type Loc = "fridge" | "freezer" | "pantry";
+type Loc = "fridge" | "freezer" | "pantry" | "counter";
 type ParsedItem = {
   name: string;
   quantity: number;
@@ -41,8 +41,11 @@ function guessLocation(category?: string, name?: string): Loc {
   // Freezer
   if (/(frozen|ice cream|popsicle|freezer|ice pack|frozen meal|frozen pizza|frozen veg)/.test(s)) return "freezer";
 
+  // Counter — room-temperature produce & bottled water
+  if (/(potato|sweet potato|yam|onion|shallot|garlic|banana|plantain|tomato|avocado|melon|watermelon|cantaloupe|honeydew|bread(?! crumb)|baguette|loaf|bun|roll\b|mango|papaya|peach|plum|nectarine|apricot|pear(?!led)|apple(?! sauce| juice)|citrus|orange(?! juice)|grapefruit|lemon|lime|pomelo|tangerine|clementine|mandarin|kiwi|pomegranate|water\b|bottled water|water bottle|jug)/.test(s)) return "counter";
+
   // Pantry — shelf-stable
-  if (/(canned|can of|jar|jarred|boxed|box of|mix|cereal|oat|granola|bar\b|pasta|noodle|ramen|rice|grain|quinoa|flour|sugar|salt|spice|seasoning|oil|vinegar|sauce|ketchup|mustard|mayo|peanut butter|jelly|jam|honey|syrup|chip|cracker|cookie|snack|candy|chocolate|nut\b|nuts|bean|lentil|coffee|tea bag|tea\b|water|soda|cola|pop\b|sparkling|gatorade|sports drink|juice box|powder|broth|stock|bread|bun|bagel|tortilla|baking)/.test(s)) return "pantry";
+  if (/(canned|can of|jar|jarred|boxed|box of|mix|cereal|oat|granola|bar\b|pasta|noodle|ramen|rice|grain|quinoa|flour|sugar|salt|spice|seasoning|oil|vinegar|sauce|ketchup|mustard|mayo|peanut butter|jelly|jam|honey|syrup|chip|cracker|cookie|snack|candy|chocolate|nut\b|nuts|bean|lentil|coffee|tea bag|tea\b|soda|cola|pop\b|sparkling|gatorade|sports drink|juice box|powder|broth|stock|tortilla|baking)/.test(s)) return "pantry";
 
   // Default to fridge for everything else (dairy, eggs, meat, produce, deli, etc.)
   return "fridge";
@@ -238,7 +241,7 @@ function ScanReceiptPage() {
 
               <div className="mb-3 flex items-center gap-1.5 rounded-xl border border-border bg-surface/60 p-1.5">
                 <span className="px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Set all</span>
-                {(["fridge","freezer","pantry"] as const).map(l => (
+                {(["fridge","freezer","pantry","counter"] as const).map(l => (
                   <button key={l} onClick={() => setAllLocations(l)}
                     className="flex-1 rounded-lg py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground hover:bg-background/60 hover:text-foreground">
                     {l}
@@ -266,8 +269,8 @@ function ScanReceiptPage() {
                         className="w-14 rounded-md border border-border bg-background/40 px-2 py-1 text-center text-sm" />
                     </div>
                     {!it._splits && (
-                      <div className="grid grid-cols-3 gap-1 pl-8">
-                        {(["fridge","freezer","pantry"] as const).map(l => (
+                      <div className="grid grid-cols-4 gap-1 pl-8">
+                        {(["fridge","freezer","pantry","counter"] as const).map(l => (
                           <button key={l} type="button"
                             onClick={() => updateItem(idx, { _location: l })}
                             className={`rounded-lg py-1.5 text-[10px] font-bold uppercase tracking-wider ${(it._location ?? "fridge")===l?"bg-primary text-primary-foreground":"border border-border bg-background/40 text-muted-foreground"}`}>
@@ -373,10 +376,10 @@ function ReviewWizard({
         {!isSplit ? (
           <>
             <div className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">Where does it go?</div>
-            <div className="grid grid-cols-3 gap-2">
-              {(["fridge","freezer","pantry"] as const).map(l => (
+            <div className="grid grid-cols-4 gap-2">
+              {(["fridge","freezer","pantry","counter"] as const).map(l => (
                 <button key={l} onClick={() => onUpdate(i, { _location: l })}
-                  className={`rounded-xl py-3 text-xs font-bold uppercase tracking-wider ${(it._location ?? "fridge")===l?"bg-primary text-primary-foreground":"border border-border bg-background/40 text-muted-foreground"}`}>
+                  className={`rounded-xl py-3 text-[10px] font-bold uppercase tracking-wider ${(it._location ?? "fridge")===l?"bg-primary text-primary-foreground":"border border-border bg-background/40 text-muted-foreground"}`}>
                   {l}
                 </button>
               ))}
@@ -396,7 +399,7 @@ function ReviewWizard({
               <button onClick={toggleSplit} className="text-[11px] font-semibold text-muted-foreground underline">Undo split</button>
             </div>
             <div className="space-y-2">
-              {(["fridge","freezer","pantry"] as const).map(l => {
+              {(["fridge","freezer","pantry","counter"] as const).map(l => {
                 const row = it._splits!.find(s => s.location === l);
                 const qty = row?.quantity ?? 0;
                 return (

@@ -17,6 +17,7 @@ export const Route = createFileRoute("/scan-fridge")({
 });
 
 type Confidence = "high" | "medium" | "low";
+type Loc = "fridge" | "freezer" | "pantry";
 type Detected = {
   name: string;
   brand?: string | null;
@@ -27,7 +28,15 @@ type Detected = {
   emoji?: string;
   confidence?: Confidence | string | number;
   _keep?: boolean;
+  _location?: Loc;
 };
+
+function guessLocation(category?: string, name?: string): Loc {
+  const s = `${category ?? ""} ${name ?? ""}`.toLowerCase();
+  if (/(frozen|ice cream|freezer)/.test(s)) return "freezer";
+  if (/(bread|pasta|rice|cereal|can|snack|chip|cookie|flour|sugar|oil|spice|grain|bean|nut|coffee|tea)/.test(s)) return "pantry";
+  return "fridge";
+}
 
 function normConfidence(c: Detected["confidence"]): Confidence {
   if (typeof c === "number") return c >= 0.75 ? "high" : c >= 0.5 ? "medium" : "low";

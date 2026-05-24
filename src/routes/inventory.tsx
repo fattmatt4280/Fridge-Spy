@@ -116,21 +116,48 @@ function InventoryPage() {
 
   return (
     <div className="px-4 pt-[max(env(safe-area-inset-top),1rem)]">
-      <h1 className="py-3 text-2xl font-extrabold tracking-tight">Inventory</h1>
+      <div className="flex items-end justify-between py-3">
+        <h1 className="text-2xl font-extrabold tracking-tight">Inventory</h1>
+        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{filtered.length} of {items.length}</span>
+      </div>
 
       {/* Search */}
       <div className="relative">
         <Search size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
         <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search items…"
-          className="w-full rounded-xl border border-border bg-surface py-3 pl-10 pr-3 text-base outline-none placeholder:text-muted-foreground focus:border-primary" />
+          className="w-full rounded-xl border border-border bg-surface py-3 pl-10 pr-10 text-base outline-none placeholder:text-muted-foreground focus:border-primary" />
+        {q && (
+          <button onClick={() => setQ("")} aria-label="Clear search"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground hover:bg-background/60 hover:text-foreground">
+            <X size={16}/>
+          </button>
+        )}
       </div>
+
+      {/* Status quick filters */}
+      {(statusFilter !== "all" || items.length > 0) && (
+        <div className="mt-3 flex items-center gap-1.5 text-xs">
+          {(["all","expiring","expired"] as StatusFilter[]).map(s => (
+            <button key={s} onClick={() => setStatusFilter(s)}
+              className={`rounded-full px-3 py-1.5 font-semibold capitalize transition ${
+                statusFilter===s
+                  ? s === "expired" ? "bg-destructive/15 text-destructive" : s === "expiring" ? "bg-warning/15 text-warning" : "bg-primary/15 text-primary"
+                  : "border border-border bg-surface text-muted-foreground"
+              }`}>
+              {s === "expiring" ? "Expiring soon" : s === "expired" ? "Expired" : "All"}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="mt-3 grid grid-cols-5 gap-1.5">
         {(["all","fridge","freezer","pantry","counter"] as Location[]).map(l => (
           <button key={l} onClick={() => setTab(l)}
-            className={`rounded-xl py-2 text-[10px] font-bold uppercase tracking-wider transition ${tab===l ? "bg-primary text-primary-foreground" : "border border-border bg-surface text-muted-foreground"}`}>
-            {l}
+            className={`flex flex-col items-center gap-0.5 rounded-xl py-2 text-[10px] font-bold uppercase tracking-wider transition ${tab===l ? "bg-primary text-primary-foreground" : "border border-border bg-surface text-muted-foreground"}`}>
+            <span className="text-sm">{l === "all" ? "📦" : LOC_EMOJI[l as Exclude<Location, "all">]}</span>
+            <span>{l}</span>
+            <span className={`text-[9px] font-bold ${tab===l ? "opacity-80" : "opacity-60"}`}>{counts[l] ?? 0}</span>
           </button>
         ))}
       </div>

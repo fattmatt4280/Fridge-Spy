@@ -9,6 +9,7 @@ import { categoryEmoji, isoDateInDays, suggestExpiryDays } from "@/lib/expiry";
 import { toast } from "sonner";
 import { usePremium, useUpgradeGate } from "@/hooks/usePremium";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { ScanExpiryButton } from "@/components/ScanExpiryButton";
 
 export const Route = createFileRoute("/add")({
   head: () => ({ meta: [{ title: "Add Item — FridgeSpy" }] }),

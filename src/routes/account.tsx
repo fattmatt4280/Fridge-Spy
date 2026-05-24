@@ -21,7 +21,22 @@ function AccountPage() {
   const navigate = useNavigate();
   const { subscription, isActive, isLifetime, env } = useSubscription();
   const portalFn = useServerFn(createPortalSession);
+  const { data: quota } = useScanQuota();
+  const { openCheckout, loading: buyingPack } = usePaddleCheckout();
   const [opening, setOpening] = useState(false);
+
+  async function buyPack() {
+    try {
+      await openCheckout({
+        priceId: "scan_pack_100",
+        customerEmail: user?.email,
+        userId: user?.id,
+        successUrl: `${window.location.origin}/account?pack=success`,
+      });
+    } catch (e: any) {
+      toast.error(e?.message || "Couldn't open checkout");
+    }
+  }
 
   async function openPortal() {
     setOpening(true);

@@ -89,6 +89,39 @@ export const scanFridge = createServerFn({ method: "POST" })
     return { items: Array.isArray(items) ? items : [] };
   });
 
+// ---------- Expiry label scan ----------
+export const scanExpiryLabel = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { imageBase64: string; mediaType: string }) =>
+    z.object({
+      imageBase64: z.string().min(10).max(15_000_000),
+      mediaType: z.enum(["image/jpeg", "image/png", "image/webp", "image/gif"]),
+    }).parse(input)
+  )
+  .handler(async ({ data }) => {
+    const json = await callClaude({
+      model: MODEL,
+      max_tokens: 256,
+      messages: [{
+        role: "user",
+        content: [
+          { type: "image", source: { type: "base64", media_type: data.mediaType, data: data.imageBase64 } },
+          { type: "text", text:
+            `Find the expiration / best-by / use-by / sell-by date on this product label or packaging. Today's date is ${new Date().toISOString().slice(0,10)}.
+
+Return ONLY JSON, no other text:
+{"expiry_date": "YYYY-MM-DD", "kind": "best_by|use_by|sell_by|exp", "raw": "exact text you saw", "confidence": "high|medium|low"}
+
+If you can't find any date, return: {"expiry_date": null, "raw": null, "confidence": "low"}
+If only month/year visible, use the last day of that month. Assume the date is in the future (current or upcoming year).` },
+        ],
+      }],
+    });
+    const text = json?.content?.[0]?.text ?? "{}";
+    const result = extractJSON<{ expiry_date?: string | null; kind?: string; raw?: string | null; confidence?: string }>(text);
+    return result;
+  });
+
 // ---------- Recipe generation ----------
 export const generateRecipes = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

@@ -40,8 +40,8 @@ export function UpgradeModal({
         customerEmail: user?.email,
         userId: user?.id,
       });
-    } catch (e: any) {
-      toast.error(e?.message || "Couldn't start checkout");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Couldn't start checkout");
     }
   }
 

@@ -241,12 +241,15 @@ function ScanReceiptPage() {
 
               <div className="mb-3 flex items-center gap-1.5 rounded-xl border border-border bg-surface/60 p-1.5">
                 <span className="px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Set all</span>
-                {(["fridge","freezer","pantry","counter"] as const).map(l => (
-                  <button key={l} onClick={() => setAllLocations(l)}
-                    className="flex-1 rounded-lg py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground hover:bg-background/60 hover:text-foreground">
-                    {l}
-                  </button>
-                ))}
+                {(["fridge","freezer","pantry","counter"] as const).map(l => {
+                  const e = l === "fridge" ? "🧊" : l === "freezer" ? "❄️" : l === "pantry" ? "🥫" : "🍎";
+                  return (
+                    <button key={l} onClick={() => setAllLocations(l)}
+                      className="flex-1 rounded-lg py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground hover:bg-background/60 hover:text-foreground">
+                      <span className="mr-1">{e}</span>{l}
+                    </button>
+                  );
+                })}
               </div>
               <ul className="space-y-1.5">
                 {items.map((it, idx) => (

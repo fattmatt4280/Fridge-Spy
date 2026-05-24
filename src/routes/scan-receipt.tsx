@@ -339,12 +339,20 @@ function ReviewWizard({
     else setI(i + 1);
   }
 
+  const pct = Math.round(((i + 1) / items.length) * 100);
+  const LOC_META: Record<Loc, { emoji: string }> = {
+    fridge: { emoji: "🧊" }, freezer: { emoji: "❄️" }, pantry: { emoji: "🥫" }, counter: { emoji: "🍎" },
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 backdrop-blur-sm sm:items-center">
       <div className="w-full max-w-md rounded-t-3xl border border-border bg-surface p-5 shadow-2xl sm:rounded-3xl">
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-2 flex items-center justify-between">
           <button onClick={onClose} className="text-xs font-semibold text-muted-foreground">Close</button>
           <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{i + 1} / {items.length}</div>
+        </div>
+        <div className="mb-4 h-1 overflow-hidden rounded-full bg-background/50">
+          <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
         </div>
 
         <div className="mb-4 flex items-center gap-3">

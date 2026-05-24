@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ChefHat, Minus, Plus, ShoppingCart, Trash2, Pencil, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { categoryEmoji, daysUntil, expiryColorClass, expiryLabel, expiryStatus, isoDateInDays } from "@/lib/expiry";
+import { categoryEmoji, daysUntil, expiryColorClass, expiryLabel, expiryStatus, isoDateInDays, suggestExpiryDays } from "@/lib/expiry";
 import { toast } from "sonner";
 import { ScanExpiryButton } from "@/components/ScanExpiryButton";
 
@@ -171,8 +171,9 @@ function ItemDetailPage() {
                 key={l}
                 onClick={() => {
                   if (item.location === l) return;
-                  update.mutate({ location: l }, {
-                    onSuccess: () => toast.success(`Moved to ${l}`),
+                  const suggested = isoDateInDays(suggestExpiryDays(item.category, item.name, l));
+                  update.mutate({ location: l, expiry_date: suggested }, {
+                    onSuccess: () => toast.success(`Moved to ${l} · expiry updated`),
                   });
                 }}
                 className={`rounded-xl py-2 text-xs font-bold uppercase tracking-wider transition ${

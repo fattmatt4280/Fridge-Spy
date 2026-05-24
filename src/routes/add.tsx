@@ -32,7 +32,7 @@ function AddPage() {
   const [quantity, setQuantity] = useState(1);
   const [unit, setUnit] = useState("unit");
   const [location, setLocation] = useState<"fridge"|"freezer"|"pantry">("fridge");
-  const [expiry, setExpiry] = useState(isoDateInDays(7));
+  const [expiry, setExpiry] = useState(isoDateInDays(suggestExpiryDays(null, null, "fridge")));
   const [notes, setNotes] = useState("");
   const [imageUrl, setImageUrl] = useState<string | undefined>();
   const [barcode, setBarcode] = useState("");
@@ -45,9 +45,13 @@ function AddPage() {
     setImageUrl(p.image_url);
     setBarcode(p.barcode);
     setEmoji(categoryEmoji(p.name ?? "", p.category));
-    setExpiry(isoDateInDays(suggestExpiryDays(p.category, p.name)));
+    setExpiry(isoDateInDays(suggestExpiryDays(p.category, p.name, location)));
     setSearchResults([]);
     toast.success(`Found: ${p.name}`);
+  }
+
+  function recomputeExpiry(cat: string, itemName: string, loc: string) {
+    setExpiry(isoDateInDays(suggestExpiryDays(cat || null, itemName || null, loc)));
   }
 
   async function onSearch() {
@@ -177,7 +181,7 @@ function AddPage() {
       <Field label="Location">
         <div className="mt-1 grid grid-cols-3 gap-1.5">
           {(["fridge","freezer","pantry"] as const).map(l => (
-            <button key={l} type="button" onClick={() => setLocation(l)}
+            <button key={l} type="button" onClick={() => { setLocation(l); recomputeExpiry(category, name, l); }}
               className={`rounded-xl py-2 text-xs font-bold uppercase tracking-wider ${location===l?"bg-primary text-primary-foreground":"border border-border bg-surface text-muted-foreground"}`}>
               {l}
             </button>

@@ -14,12 +14,30 @@ const CATEGORY_EXPIRY: Record<string, number> = {
   default: 14,
 };
 
-export function suggestExpiryDays(category?: string | null, name?: string | null): number {
+function suggestBaseExpiryDays(category?: string | null, name?: string | null): number {
   const hay = `${category ?? ""} ${name ?? ""}`.toLowerCase();
   for (const k of Object.keys(CATEGORY_EXPIRY)) {
     if (hay.includes(k)) return CATEGORY_EXPIRY[k];
   }
   return CATEGORY_EXPIRY.default;
+}
+
+export function suggestExpiryDays(category?: string | null, name?: string | null, location?: string | null): number {
+  const base = suggestBaseExpiryDays(category, name);
+
+  if (location === "freezer") {
+    if (base <= 14) return Math.min(365, base * 12);
+    if (base <= 60) return Math.min(365, base * 6);
+    return Math.min(365, base);
+  }
+
+  if (location === "pantry") {
+    if (base <= 14) return Math.min(730, base * 4);
+    if (base <= 60) return Math.min(730, base * 2);
+    return base;
+  }
+
+  return base;
 }
 
 export function daysUntil(date: string | Date | null | undefined): number | null {

@@ -76,14 +76,14 @@ function ScanReceiptPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const scanFn = useServerFn(scanReceipt);
-  const { isPremium } = usePremium();
+  const { isPremium, isPremiumLoading } = usePremium();
   const gate = useUpgradeGate();
 
   const [preview, setPreview] = useState<string | null>(null);
   const [items, setItems] = useState<ParsedItem[] | null>(null);
   const [wizardIdx, setWizardIdx] = useState<number | null>(null);
 
-  useEffect(() => { if (!isPremium) gate.open("receipt-scan"); /* eslint-disable-next-line */ }, [isPremium]);
+  useEffect(() => { if (!isPremiumLoading && !isPremium) gate.open("receipt-scan"); /* eslint-disable-next-line */ }, [isPremium, isPremiumLoading]);
 
   const scan = useMutation({
     mutationFn: async (file: File) => {

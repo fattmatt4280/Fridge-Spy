@@ -100,7 +100,7 @@ function AddPage() {
   });
 
   return (
-    <div className="px-4 pt-[max(env(safe-area-inset-top),1rem)]">
+    <div className="overflow-x-hidden px-4 pt-[max(env(safe-area-inset-top),1rem)]">
       <div className="flex items-center gap-3 py-3">
         <button onClick={() => history.back()} className="rounded-full p-2 hover:bg-surface"><ArrowLeft size={20}/></button>
         <h1 className="text-xl font-extrabold tracking-tight">Add Item</h1>

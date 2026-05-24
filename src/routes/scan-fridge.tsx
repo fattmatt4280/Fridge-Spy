@@ -167,27 +167,47 @@ function ScanFridgePage() {
                 <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Detected ({keepCount})</h2>
                 <button onClick={() => fileRef.current?.click()} className="text-xs font-semibold text-primary">Retake</button>
               </div>
+              <div className="mb-3 flex items-center gap-1.5 rounded-xl border border-border bg-surface/60 p-1.5">
+                <span className="px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Set all</span>
+                {(["fridge","freezer","pantry"] as const).map(l => (
+                  <button key={l} onClick={() => setAllLocations(l)}
+                    className="flex-1 rounded-lg py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground hover:bg-background/60 hover:text-foreground">
+                    {l}
+                  </button>
+                ))}
+              </div>
               <ul className="space-y-1.5">
                 {items.map((it, idx) => {
                   const conf = normConfidence(it.confidence);
                   return (
-                    <li key={idx} className="glass-card flex items-center gap-3 p-3">
-                      <input type="checkbox" checked={!!it._keep}
-                        onChange={e => setItems(arr=>arr!.map((x,i)=>i===idx?{...x,_keep:e.target.checked}:x))}
-                        className="h-5 w-5 accent-[color:var(--color-primary)]" />
-                      <div className="text-2xl">{it.emoji ?? categoryEmoji(it.name, it.category)}</div>
-                      <div className="min-w-0 flex-1">
-                        <input value={it.name} onChange={e=>setItems(arr=>arr!.map((x,i)=>i===idx?{...x,name:e.target.value}:x))}
-                          className="w-full bg-transparent text-sm font-semibold outline-none" />
-                        <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${confBadge(conf)}`}>{conf}</span>
-                          <span className="truncate">{it.category ?? "—"}</span>
+                    <li key={idx} className="glass-card flex flex-col gap-2 p-3">
+                      <div className="flex items-center gap-3">
+                        <input type="checkbox" checked={!!it._keep}
+                          onChange={e => setItems(arr=>arr!.map((x,i)=>i===idx?{...x,_keep:e.target.checked}:x))}
+                          className="h-5 w-5 accent-[color:var(--color-primary)]" />
+                        <div className="text-2xl">{it.emoji ?? categoryEmoji(it.name, it.category)}</div>
+                        <div className="min-w-0 flex-1">
+                          <input value={it.name} onChange={e=>setItems(arr=>arr!.map((x,i)=>i===idx?{...x,name:e.target.value}:x))}
+                            className="w-full bg-transparent text-sm font-semibold outline-none" />
+                          <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${confBadge(conf)}`}>{conf}</span>
+                            <span className="truncate">{it.category ?? "—"}</span>
+                          </div>
                         </div>
+                        <input type="number" min={0}
+                          value={it.estimated_quantity ?? it.quantity ?? 1}
+                          onChange={e=>setItems(arr=>arr!.map((x,i)=>i===idx?{...x,estimated_quantity:Number(e.target.value),quantity:Number(e.target.value)}:x))}
+                          className="w-14 rounded-md border border-border bg-background/40 px-2 py-1 text-center text-sm" />
                       </div>
-                      <input type="number" min={0}
-                        value={it.estimated_quantity ?? it.quantity ?? 1}
-                        onChange={e=>setItems(arr=>arr!.map((x,i)=>i===idx?{...x,estimated_quantity:Number(e.target.value),quantity:Number(e.target.value)}:x))}
-                        className="w-14 rounded-md border border-border bg-background/40 px-2 py-1 text-center text-sm" />
+                      <div className="grid grid-cols-3 gap-1 pl-8">
+                        {(["fridge","freezer","pantry"] as const).map(l => (
+                          <button key={l} type="button"
+                            onClick={() => setItems(arr=>arr!.map((x,i)=>i===idx?{...x,_location:l}:x))}
+                            className={`rounded-lg py-1.5 text-[10px] font-bold uppercase tracking-wider ${(it._location ?? "fridge")===l?"bg-primary text-primary-foreground":"border border-border bg-background/40 text-muted-foreground"}`}>
+                            {l}
+                          </button>
+                        ))}
+                      </div>
                     </li>
                   );
                 })}

@@ -16,6 +16,7 @@ export const Route = createFileRoute("/scan-receipt")({
   component: ScanReceiptPage,
 });
 
+type Loc = "fridge" | "freezer" | "pantry";
 type ParsedItem = {
   name: string;
   quantity: number;
@@ -25,7 +26,15 @@ type ParsedItem = {
   expiry_days?: number;
   emoji?: string;
   _keep?: boolean;
+  _location?: Loc;
 };
+
+function guessLocation(category?: string, name?: string): Loc {
+  const s = `${category ?? ""} ${name ?? ""}`.toLowerCase();
+  if (/(frozen|ice cream|freezer)/.test(s)) return "freezer";
+  if (/(bread|pasta|rice|cereal|can|snack|chip|cookie|flour|sugar|oil|spice|grain|bean|nut|coffee|tea)/.test(s)) return "pantry";
+  return "fridge";
+}
 
 function ScanReceiptPage() {
   const fileRef = useRef<HTMLInputElement>(null);

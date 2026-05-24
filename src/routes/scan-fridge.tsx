@@ -59,13 +59,13 @@ function ScanFridgePage() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const scanFn = useServerFn(scanFridge);
-  const { isPremium } = usePremium();
+  const { isPremium, isPremiumLoading } = usePremium();
   const gate = useUpgradeGate();
 
   const [preview, setPreview] = useState<string | null>(null);
   const [items, setItems] = useState<Detected[] | null>(null);
 
-  useEffect(() => { if (!isPremium) gate.open("fridge-scan"); /* eslint-disable-next-line */ }, [isPremium]);
+  useEffect(() => { if (!isPremiumLoading && !isPremium) gate.open("fridge-scan"); /* eslint-disable-next-line */ }, [isPremium, isPremiumLoading]);
 
   const scan = useMutation({
     mutationFn: async (file: File) => {

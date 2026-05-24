@@ -20,7 +20,7 @@ function AddPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const qc = useQueryClient();
-  const { isPremium, itemsLeft } = usePremium();
+  const { isPremium, isPremiumLoading, itemsLeft } = usePremium();
   const gate = useUpgradeGate();
   const [tab, setTab] = useState<"manual" | "barcode">("manual");
 
@@ -111,11 +111,13 @@ function AddPage() {
           <button onClick={() => history.back()} className="rounded-full p-2 hover:bg-surface"><ArrowLeft size={20}/></button>
           <h1 className="text-xl font-extrabold tracking-tight">Add Item</h1>
         </div>
-        {!isPremium && (
+        {isPremiumLoading ? (
+          <span className="h-6 w-20 animate-pulse rounded-full bg-surface" />
+        ) : !isPremium ? (
           <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
             {itemsLeft} free left
           </span>
-        )}
+        ) : null}
       </div>
 
       {/* Method selectors */}

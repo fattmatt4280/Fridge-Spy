@@ -45,9 +45,13 @@ function AddPage() {
     setImageUrl(p.image_url);
     setBarcode(p.barcode);
     setEmoji(categoryEmoji(p.name ?? "", p.category));
-    setExpiry(isoDateInDays(suggestExpiryDays(p.category, p.name)));
+    setExpiry(isoDateInDays(suggestExpiryDays(p.category, p.name, location)));
     setSearchResults([]);
     toast.success(`Found: ${p.name}`);
+  }
+
+  function recomputeExpiry(cat: string, itemName: string, loc: string) {
+    setExpiry(isoDateInDays(suggestExpiryDays(cat || null, itemName || null, loc)));
   }
 
   async function onSearch() {

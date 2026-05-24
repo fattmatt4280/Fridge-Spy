@@ -57,7 +57,7 @@ function ScanReceiptPage() {
       return await scanFn({ data: { imageBase64: base64, mediaType } });
     },
     onSuccess: (res) => {
-      const arr = (res.items ?? []).map((i: any) => ({ ...i, _keep: true }));
+      const arr = (res.items ?? []).map((i: any) => ({ ...i, _keep: true, _location: guessLocation(i.category, i.name) as Loc }));
       setItems(arr);
       if (arr.length === 0) toast.error("Couldn't find any items on that receipt.");
     },
@@ -66,6 +66,10 @@ function ScanReceiptPage() {
 
   function daysFor(i: ParsedItem) {
     return i.estimated_expiry_days ?? i.expiry_days ?? suggestExpiryDays(i.category, i.name);
+  }
+
+  function setAllLocations(loc: Loc) {
+    setItems(arr => arr?.map(x => ({ ...x, _location: loc })) ?? null);
   }
 
   const save = useMutation({
@@ -78,7 +82,7 @@ function ScanReceiptPage() {
         emoji: i.emoji ?? categoryEmoji(i.name, i.category),
         quantity: i.quantity ?? 1,
         unit: i.unit ?? "each",
-        location: "fridge",
+        location: i._location ?? "fridge",
         expiry_date: isoDateInDays(daysFor(i)),
       }));
       if (!rows.length) throw new Error("Nothing selected");

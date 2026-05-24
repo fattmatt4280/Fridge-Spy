@@ -443,11 +443,49 @@ function ReviewWizard({
   );
 }
 
+// Claude's vision API caps base64 image payloads at ~5 MB. iPhone photos easily
+// exceed that, so we always downscale + re-encode as JPEG before sending.
 async function fileToBase64(file: File): Promise<{ base64: string; mediaType: string }> {
-  const arr = new Uint8Array(await file.arrayBuffer());
+  const { blob, mediaType } = await compressImage(file, { maxDim: 2000, maxBytes: 4_500_000 });
+  const arr = new Uint8Array(await blob.arrayBuffer());
   let bin = "";
-  for (let i = 0; i < arr.length; i++) bin += String.fromCharCode(arr[i]);
-  const base64 = btoa(bin);
-  const mediaType = ["image/jpeg","image/png","image/webp","image/gif"].includes(file.type) ? file.type : "image/jpeg";
-  return { base64, mediaType };
+  const chunk = 0x8000;
+  for (let i = 0; i < arr.length; i += chunk) {
+    bin += String.fromCharCode.apply(null, Array.from(arr.subarray(i, i + chunk)) as any);
+  }
+  return { base64: btoa(bin), mediaType };
+}
+
+async function compressImage(
+  file: File,
+  opts: { maxDim: number; maxBytes: number },
+): Promise<{ blob: Blob; mediaType: string }> {
+  const bitmap = await createImageBitmap(await fileToImageBlob(file));
+  let { width, height } = bitmap;
+  const scale = Math.min(1, opts.maxDim / Math.max(width, height));
+  width = Math.round(width * scale);
+  height = Math.round(height * scale);
+
+  let quality = 0.85;
+  let blob: Blob | null = null;
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d")!;
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    blob = await new Promise<Blob | null>(res => canvas.toBlob(res, "image/jpeg", quality));
+    if (!blob) break;
+    // base64 inflates size by ~4/3, so target raw bytes ≈ maxBytes * 3/4
+    if (blob.size * 1.37 < opts.maxBytes) break;
+    if (attempt < 3) quality -= 0.15;
+    else { width = Math.round(width * 0.8); height = Math.round(height * 0.8); }
+  }
+  if (!blob) throw new Error("Could not process image");
+  return { blob, mediaType: "image/jpeg" };
+}
+
+async function fileToImageBlob(file: File): Promise<Blob> {
+  // HEIC/unknown types: createImageBitmap may still handle, otherwise fall through.
+  return file;
 }

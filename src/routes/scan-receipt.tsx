@@ -413,7 +413,7 @@ function ReviewWizard({
                 const qty = row?.quantity ?? 0;
                 return (
                   <div key={l} className="flex items-center gap-3 rounded-xl border border-border bg-background/40 p-3">
-                    <div className="flex-1 text-xs font-bold uppercase tracking-wider">{l}</div>
+                    <div className="flex flex-1 items-center gap-2 text-xs font-bold uppercase tracking-wider"><span className="text-base">{LOC_META[l].emoji}</span>{l}</div>
                     <button onClick={() => setSplitQty(l, qty - 1)} className="rounded-md border border-border px-2 py-0.5 text-sm">−</button>
                     <div className="w-8 text-center text-base font-bold">{qty}</div>
                     <button onClick={() => {

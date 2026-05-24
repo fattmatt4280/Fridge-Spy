@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Search, Trash2, ShoppingCart, Minus, Plus } from "lucide-react";
+import { Search, Trash2, ShoppingCart, Minus, Plus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { categoryEmoji, daysUntil, expiryColorClass, expiryLabel, expiryStatus } from "@/lib/expiry";
@@ -10,18 +10,35 @@ import { EmptyState, SkeletonRow } from "@/components/EmptyState";
 
 type Location = "all" | "fridge" | "freezer" | "pantry" | "counter";
 type SortKey = "expiry" | "name" | "category" | "location";
+type StatusFilter = "all" | "expiring" | "expired";
+
+const LOC_EMOJI: Record<Exclude<Location, "all">, string> = {
+  fridge: "🧊", freezer: "❄️", pantry: "🥫", counter: "🍎",
+};
 
 export const Route = createFileRoute("/inventory")({
   head: () => ({ meta: [{ title: "Inventory — FridgeSpy" }] }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    filter: (s.filter === "expiring" || s.filter === "expired") ? s.filter : undefined,
+  }),
   component: InventoryPage,
 });
 
 function InventoryPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const search = Route.useSearch();
   const [tab, setTab] = useState<Location>("all");
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<SortKey>("expiry");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+
+  // Honor incoming ?filter=expiring|expired from the home dashboard.
+  useEffect(() => {
+    if (search.filter === "expiring" || search.filter === "expired") {
+      setStatusFilter(search.filter);
+    }
+  }, [search.filter]);
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ["items", user?.id],
@@ -33,10 +50,27 @@ function InventoryPage() {
     },
   });
 
+  // Per-location counts for tab badges
+  const counts = useMemo(() => {
+    const c: Record<Location, number> = { all: items.length, fridge: 0, freezer: 0, pantry: 0, counter: 0 };
+    for (const i of items) {
+      if (i.location in c) c[i.location as Location]++;
+    }
+    return c;
+  }, [items]);
+
   const filtered = useMemo(() => {
     let list = items;
     if (tab !== "all") list = list.filter(i => i.location === tab);
     if (q) list = list.filter(i => i.name.toLowerCase().includes(q.toLowerCase()));
+    if (statusFilter !== "all") {
+      list = list.filter(i => {
+        const d = daysUntil(i.expiry_date);
+        if (d === null) return false;
+        if (statusFilter === "expired") return d < 0;
+        return d >= 0 && d <= 7;
+      });
+    }
     list = [...list].sort((a, b) => {
       if (sort === "name") return a.name.localeCompare(b.name);
       if (sort === "category") return (a.category ?? "").localeCompare(b.category ?? "");
@@ -47,7 +81,7 @@ function InventoryPage() {
       return da - db;
     });
     return list;
-  }, [items, tab, q, sort]);
+  }, [items, tab, q, sort, statusFilter]);
 
   const adjust = useMutation({
     mutationFn: async ({ id, qty }: { id: string; qty: number }) => {
@@ -82,21 +116,48 @@ function InventoryPage() {
 
   return (
     <div className="px-4 pt-[max(env(safe-area-inset-top),1rem)]">
-      <h1 className="py-3 text-2xl font-extrabold tracking-tight">Inventory</h1>
+      <div className="flex items-end justify-between py-3">
+        <h1 className="text-2xl font-extrabold tracking-tight">Inventory</h1>
+        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{filtered.length} of {items.length}</span>
+      </div>
 
       {/* Search */}
       <div className="relative">
         <Search size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
         <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search items…"
-          className="w-full rounded-xl border border-border bg-surface py-3 pl-10 pr-3 text-base outline-none placeholder:text-muted-foreground focus:border-primary" />
+          className="w-full rounded-xl border border-border bg-surface py-3 pl-10 pr-10 text-base outline-none placeholder:text-muted-foreground focus:border-primary" />
+        {q && (
+          <button onClick={() => setQ("")} aria-label="Clear search"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground hover:bg-background/60 hover:text-foreground">
+            <X size={16}/>
+          </button>
+        )}
       </div>
+
+      {/* Status quick filters */}
+      {(statusFilter !== "all" || items.length > 0) && (
+        <div className="mt-3 flex items-center gap-1.5 text-xs">
+          {(["all","expiring","expired"] as StatusFilter[]).map(s => (
+            <button key={s} onClick={() => setStatusFilter(s)}
+              className={`rounded-full px-3 py-1.5 font-semibold capitalize transition ${
+                statusFilter===s
+                  ? s === "expired" ? "bg-destructive/15 text-destructive" : s === "expiring" ? "bg-warning/15 text-warning" : "bg-primary/15 text-primary"
+                  : "border border-border bg-surface text-muted-foreground"
+              }`}>
+              {s === "expiring" ? "Expiring soon" : s === "expired" ? "Expired" : "All"}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="mt-3 grid grid-cols-5 gap-1.5">
         {(["all","fridge","freezer","pantry","counter"] as Location[]).map(l => (
           <button key={l} onClick={() => setTab(l)}
-            className={`rounded-xl py-2 text-[10px] font-bold uppercase tracking-wider transition ${tab===l ? "bg-primary text-primary-foreground" : "border border-border bg-surface text-muted-foreground"}`}>
-            {l}
+            className={`flex flex-col items-center gap-0.5 rounded-xl py-2 text-[10px] font-bold uppercase tracking-wider transition ${tab===l ? "bg-primary text-primary-foreground" : "border border-border bg-surface text-muted-foreground"}`}>
+            <span className="text-sm">{l === "all" ? "📦" : LOC_EMOJI[l as Exclude<Location, "all">]}</span>
+            <span>{l}</span>
+            <span className={`text-[9px] font-bold ${tab===l ? "opacity-80" : "opacity-60"}`}>{counts[l] ?? 0}</span>
           </button>
         ))}
       </div>

@@ -241,12 +241,15 @@ function ScanReceiptPage() {
 
               <div className="mb-3 flex items-center gap-1.5 rounded-xl border border-border bg-surface/60 p-1.5">
                 <span className="px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Set all</span>
-                {(["fridge","freezer","pantry","counter"] as const).map(l => (
-                  <button key={l} onClick={() => setAllLocations(l)}
-                    className="flex-1 rounded-lg py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground hover:bg-background/60 hover:text-foreground">
-                    {l}
-                  </button>
-                ))}
+                {(["fridge","freezer","pantry","counter"] as const).map(l => {
+                  const e = l === "fridge" ? "🧊" : l === "freezer" ? "❄️" : l === "pantry" ? "🥫" : "🍎";
+                  return (
+                    <button key={l} onClick={() => setAllLocations(l)}
+                      className="flex-1 rounded-lg py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground hover:bg-background/60 hover:text-foreground">
+                      <span className="mr-1">{e}</span>{l}
+                    </button>
+                  );
+                })}
               </div>
               <ul className="space-y-1.5">
                 {items.map((it, idx) => (
@@ -339,12 +342,20 @@ function ReviewWizard({
     else setI(i + 1);
   }
 
+  const pct = Math.round(((i + 1) / items.length) * 100);
+  const LOC_META: Record<Loc, { emoji: string }> = {
+    fridge: { emoji: "🧊" }, freezer: { emoji: "❄️" }, pantry: { emoji: "🥫" }, counter: { emoji: "🍎" },
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 backdrop-blur-sm sm:items-center">
       <div className="w-full max-w-md rounded-t-3xl border border-border bg-surface p-5 shadow-2xl sm:rounded-3xl">
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-2 flex items-center justify-between">
           <button onClick={onClose} className="text-xs font-semibold text-muted-foreground">Close</button>
           <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{i + 1} / {items.length}</div>
+        </div>
+        <div className="mb-4 h-1 overflow-hidden rounded-full bg-background/50">
+          <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
         </div>
 
         <div className="mb-4 flex items-center gap-3">
@@ -379,7 +390,8 @@ function ReviewWizard({
             <div className="grid grid-cols-4 gap-2">
               {(["fridge","freezer","pantry","counter"] as const).map(l => (
                 <button key={l} onClick={() => onUpdate(i, { _location: l })}
-                  className={`rounded-xl py-3 text-[10px] font-bold uppercase tracking-wider ${(it._location ?? "fridge")===l?"bg-primary text-primary-foreground":"border border-border bg-background/40 text-muted-foreground"}`}>
+                  className={`flex flex-col items-center gap-1 rounded-xl py-3 text-[10px] font-bold uppercase tracking-wider transition ${(it._location ?? "fridge")===l?"bg-primary text-primary-foreground":"border border-border bg-background/40 text-muted-foreground"}`}>
+                  <span className="text-lg">{LOC_META[l].emoji}</span>
                   {l}
                 </button>
               ))}
@@ -404,7 +416,7 @@ function ReviewWizard({
                 const qty = row?.quantity ?? 0;
                 return (
                   <div key={l} className="flex items-center gap-3 rounded-xl border border-border bg-background/40 p-3">
-                    <div className="flex-1 text-xs font-bold uppercase tracking-wider">{l}</div>
+                    <div className="flex flex-1 items-center gap-2 text-xs font-bold uppercase tracking-wider"><span className="text-base">{LOC_META[l].emoji}</span>{l}</div>
                     <button onClick={() => setSplitQty(l, qty - 1)} className="rounded-md border border-border px-2 py-0.5 text-sm">−</button>
                     <div className="w-8 text-center text-base font-bold">{qty}</div>
                     <button onClick={() => {

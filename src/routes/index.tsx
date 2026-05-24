@@ -55,6 +55,10 @@ function HomePage() {
 
   // Guests (no user) still see the home shell with empty data.
 
+  const hour = new Date().getHours();
+  const greeting = hour < 5 ? "Late night" : hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const firstName = (user?.user_metadata as any)?.full_name?.split(" ")[0] ?? (user?.email?.split("@")[0]);
+
   return (
     <div className="px-4 pt-[max(env(safe-area-inset-top),1rem)]">
       <header className="flex items-center justify-between py-3">
@@ -70,13 +74,19 @@ function HomePage() {
         </div>
       </header>
 
+      {user && (
+        <div className="text-sm text-muted-foreground">
+          {greeting}{firstName ? `, ${firstName}` : ""}.
+        </div>
+      )}
+
       {/* Summary card */}
       <section className="glass-card mt-2 p-5">
         <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">The Spy Report</div>
         <div className="mt-3 grid grid-cols-3 gap-3">
-          <SummaryStat value={items.length} label="tracked" tone="primary" />
-          <SummaryStat value={expiring.length} label="expiring soon" tone="warning" />
-          <SummaryStat value={expired.length} label="expired" tone="destructive" />
+          <SummaryStat to="/inventory" value={items.length} label="tracked" tone="primary" />
+          <SummaryStat to="/inventory" filter="expiring" value={expiring.length} label="expiring soon" tone="warning" />
+          <SummaryStat to="/inventory" filter="expired" value={expired.length} label="expired" tone="destructive" />
         </div>
       </section>
 
@@ -158,14 +168,22 @@ function HomePage() {
   );
 }
 
-function SummaryStat({ value, label, tone }: { value: number; label: string; tone: "primary" | "warning" | "destructive" }) {
+function SummaryStat({ value, label, tone, to, filter }: { value: number; label: string; tone: "primary" | "warning" | "destructive"; to?: string; filter?: "expiring" | "expired" }) {
   const color = tone === "primary" ? "text-primary" : tone === "warning" ? "text-warning" : "text-destructive";
-  return (
-    <div className="rounded-xl bg-background/40 p-3 text-center">
+  const inner = (
+    <>
       <div className={`text-3xl font-extrabold tabular-nums ${color}`}>{value}</div>
       <div className="mt-0.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</div>
-    </div>
+    </>
   );
+  if (to) {
+    return (
+      <Link to={to as any} search={filter ? { filter } as any : undefined} className="rounded-xl bg-background/40 p-3 text-center transition active:scale-95 hover:bg-background/60">
+        {inner}
+      </Link>
+    );
+  }
+  return <div className="rounded-xl bg-background/40 p-3 text-center">{inner}</div>;
 }
 
 function QuickAction({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) {

@@ -27,9 +27,18 @@ export const Route = createFileRoute("/inventory")({
 function InventoryPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const search = Route.useSearch();
   const [tab, setTab] = useState<Location>("all");
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<SortKey>("expiry");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+
+  // Honor incoming ?filter=expiring|expired from the home dashboard.
+  useEffect(() => {
+    if (search.filter === "expiring" || search.filter === "expired") {
+      setStatusFilter(search.filter);
+    }
+  }, [search.filter]);
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ["items", user?.id],
@@ -41,10 +50,27 @@ function InventoryPage() {
     },
   });
 
+  // Per-location counts for tab badges
+  const counts = useMemo(() => {
+    const c: Record<Location, number> = { all: items.length, fridge: 0, freezer: 0, pantry: 0, counter: 0 };
+    for (const i of items) {
+      if (i.location in c) c[i.location as Location]++;
+    }
+    return c;
+  }, [items]);
+
   const filtered = useMemo(() => {
     let list = items;
     if (tab !== "all") list = list.filter(i => i.location === tab);
     if (q) list = list.filter(i => i.name.toLowerCase().includes(q.toLowerCase()));
+    if (statusFilter !== "all") {
+      list = list.filter(i => {
+        const d = daysUntil(i.expiry_date);
+        if (d === null) return false;
+        if (statusFilter === "expired") return d < 0;
+        return d >= 0 && d <= 7;
+      });
+    }
     list = [...list].sort((a, b) => {
       if (sort === "name") return a.name.localeCompare(b.name);
       if (sort === "category") return (a.category ?? "").localeCompare(b.category ?? "");

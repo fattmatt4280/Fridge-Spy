@@ -32,7 +32,7 @@ function AddPage() {
   const [quantity, setQuantity] = useState(1);
   const [unit, setUnit] = useState("unit");
   const [location, setLocation] = useState<"fridge"|"freezer"|"pantry">("fridge");
-  const [expiry, setExpiry] = useState(isoDateInDays(7));
+  const [expiry, setExpiry] = useState(isoDateInDays(suggestExpiryDays(null, null, "fridge")));
   const [notes, setNotes] = useState("");
   const [imageUrl, setImageUrl] = useState<string | undefined>();
   const [barcode, setBarcode] = useState("");

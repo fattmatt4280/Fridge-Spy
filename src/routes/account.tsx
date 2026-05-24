@@ -122,6 +122,53 @@ function AccountPage() {
           ) : null}
         </section>
 
+        <section className="glass-card mt-4 p-5">
+          <div className="flex items-center gap-2">
+            <Camera size={16} className="text-primary" />
+            <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Label scans</div>
+          </div>
+          {quota?.paid ? (
+            <>
+              <div className="mt-2 flex items-baseline justify-between">
+                <div className="text-xl font-extrabold">
+                  {quota.remaining} <span className="text-sm font-medium text-muted-foreground">remaining</span>
+                </div>
+                <span className="stat-pill bg-primary/15 text-primary">
+                  {quota.used} / {quota.included + quota.bonus} used
+                </span>
+              </div>
+              {quota.bonus > 0 && (
+                <p className="mt-1 text-xs text-muted-foreground">Includes {quota.bonus} bonus scans from add-on packs.</p>
+              )}
+              {quota.period_end && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Resets {new Date(quota.period_end).toLocaleDateString()}.
+                </p>
+              )}
+              <button
+                onClick={buyPack}
+                disabled={buyingPack}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-background/40 py-3 text-sm font-semibold transition hover:border-primary/40 disabled:opacity-60"
+              >
+                {buyingPack ? "Opening…" : "Buy 100 more scans · $1"}
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="mt-2 text-sm text-muted-foreground">
+                Label scanning is a Pro feature. Pro includes 100 scans per billing cycle, then $1 per additional 100.
+              </div>
+              <Link
+                to="/"
+                className="mt-3 block w-full rounded-xl bg-primary py-3 text-center text-sm font-bold text-primary-foreground"
+              >
+                Upgrade to Pro
+              </Link>
+            </>
+          )}
+        </section>
+
+
         <button
           onClick={signOut}
           className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-surface py-3 text-sm font-semibold text-muted-foreground hover:text-foreground"

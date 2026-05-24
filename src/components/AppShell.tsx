@@ -2,6 +2,7 @@ import { useEffect, type ReactNode } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { BottomNav } from "@/components/BottomNav";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 const PUBLIC = new Set(["/login", "/onboarding"]);
 
@@ -30,6 +31,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="mx-auto min-h-screen max-w-md bg-background pb-24">
+      <PaymentTestModeBanner />
       {children}
       {!isPublic && user && <BottomNav />}
     </div>

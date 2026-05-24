@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Bell, Camera, Receipt, Plus, ChefHat, Sparkles } from "lucide-react";
+import { Bell, Camera, Receipt, Plus, ChefHat, Sparkles, UserCircle2 } from "lucide-react";
 import { Logo } from "@/components/ui-fs/Logo";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -59,10 +59,15 @@ function HomePage() {
     <div className="px-4 pt-[max(env(safe-area-inset-top),1rem)]">
       <header className="flex items-center justify-between py-3">
         <Logo />
-        <Link to="/alerts" className="relative rounded-full p-2 text-muted-foreground hover:text-foreground hover:bg-surface" aria-label="Alerts">
-          <Bell size={22} />
-          {expired.length > 0 && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-destructive" />}
-        </Link>
+        <div className="flex items-center gap-1">
+          <Link to="/account" className="rounded-full p-2 text-muted-foreground hover:text-foreground hover:bg-surface" aria-label="Account">
+            <UserCircle2 size={22} />
+          </Link>
+          <Link to="/alerts" className="relative rounded-full p-2 text-muted-foreground hover:text-foreground hover:bg-surface" aria-label="Alerts">
+            <Bell size={22} />
+            {expired.length > 0 && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-destructive" />}
+          </Link>
+        </div>
       </header>
 
       {/* Summary card */}

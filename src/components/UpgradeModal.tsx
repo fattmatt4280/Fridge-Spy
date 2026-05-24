@@ -2,6 +2,16 @@ import { useState } from "react";
 import { X, Check, Sparkles } from "lucide-react";
 import { PREMIUM_FEATURES, REASON_COPY, type LimitReason } from "@/lib/limits";
 import { toast } from "sonner";
+import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
+import { useAuth } from "@/hooks/useAuth";
+
+type Plan = "monthly" | "yearly" | "lifetime";
+
+const PLAN_PRICE_ID: Record<Plan, string> = {
+  monthly: "pro_monthly",
+  yearly: "pro_yearly",
+  lifetime: "pro_lifetime",
+};
 
 export function UpgradeModal({
   reason,
@@ -10,15 +20,28 @@ export function UpgradeModal({
   reason: LimitReason | null;
   onClose: () => void;
 }) {
-  const [plan, setPlan] = useState<"monthly" | "yearly">("yearly");
+  const [plan, setPlan] = useState<Plan>("yearly");
+  const { openCheckout, loading } = usePaddleCheckout();
+  const { user } = useAuth();
   if (!reason) return null;
   const copy = REASON_COPY[reason];
 
-  function startTrial() {
-    // Stripe wiring placeholder — UI only, no live payment yet.
-    toast.success("Free trial flow coming soon — payments not yet live.");
-    onClose();
+  async function startCheckout() {
+    try {
+      await openCheckout({
+        priceId: PLAN_PRICE_ID[plan],
+        customerEmail: user?.email,
+        userId: user?.id,
+      });
+    } catch (e: any) {
+      toast.error(e?.message || "Couldn't start checkout");
+    }
   }
+
+  const ctaLabel =
+    plan === "lifetime"
+      ? "Get Lifetime — $79"
+      : "Start 7-Day Free Trial";
 
   return (
     <div
@@ -66,29 +89,24 @@ export function UpgradeModal({
           </ul>
 
           {/* Pricing toggle */}
-          <div className="mt-5 grid grid-cols-2 gap-2 rounded-2xl border border-border bg-background/40 p-1.5">
-            <PlanPill
-              active={plan === "monthly"}
-              onClick={() => setPlan("monthly")}
-              title="Monthly"
-              price="$4.99"
-              unit="/mo"
-            />
-            <PlanPill
-              active={plan === "yearly"}
-              onClick={() => setPlan("yearly")}
-              title="Yearly"
-              price="$34.99"
-              unit="/yr"
-              badge="Save 42%"
-            />
+          <div className="mt-5 grid grid-cols-3 gap-2 rounded-2xl border border-border bg-background/40 p-1.5">
+            <PlanPill active={plan === "monthly"} onClick={() => setPlan("monthly")} title="Monthly" price="$4.99" unit="/mo" />
+            <PlanPill active={plan === "yearly"} onClick={() => setPlan("yearly")} title="Yearly" price="$34.99" unit="/yr" badge="Save 42%" />
+            <PlanPill active={plan === "lifetime"} onClick={() => setPlan("lifetime")} title="Lifetime" price="$79" unit=" once" badge="Founder" />
           </div>
 
+          {plan === "lifetime" && (
+            <p className="mt-2 text-center text-[11px] font-semibold uppercase tracking-wider text-primary">
+              Founding Member price · locks in forever
+            </p>
+          )}
+
           <button
-            onClick={startTrial}
-            className="mt-4 w-full rounded-xl bg-primary py-4 text-base font-bold text-primary-foreground shadow-lg shadow-primary/30 transition active:scale-[0.98]"
+            onClick={startCheckout}
+            disabled={loading}
+            className="mt-4 w-full rounded-xl bg-primary py-4 text-base font-bold text-primary-foreground shadow-lg shadow-primary/30 transition active:scale-[0.98] disabled:opacity-60"
           >
-            Start 7-Day Free Trial
+            {loading ? "Opening checkout…" : ctaLabel}
           </button>
           <button onClick={onClose} className="mt-2 w-full py-2 text-center text-sm text-muted-foreground hover:text-foreground">
             Maybe Later
@@ -105,17 +123,17 @@ function PlanPill({
   return (
     <button
       onClick={onClick}
-      className={`relative rounded-xl px-3 py-2.5 text-left transition ${
+      className={`relative rounded-xl px-2 py-2.5 text-left transition ${
         active ? "bg-primary text-primary-foreground shadow-md shadow-primary/30" : "text-muted-foreground hover:text-foreground"
       }`}
     >
-      <div className="text-[11px] font-bold uppercase tracking-wider opacity-80">{title}</div>
+      <div className="text-[10px] font-bold uppercase tracking-wider opacity-80">{title}</div>
       <div className="mt-0.5">
-        <span className="text-lg font-extrabold tabular-nums">{price}</span>
-        <span className="text-xs opacity-80">{unit}</span>
+        <span className="text-base font-extrabold tabular-nums">{price}</span>
+        <span className="text-[10px] opacity-80">{unit}</span>
       </div>
       {badge && (
-        <span className={`absolute -top-2 right-2 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${active ? "bg-background/30" : "bg-primary text-primary-foreground"}`}>
+        <span className={`absolute -top-2 right-1.5 rounded-full px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider ${active ? "bg-background/30" : "bg-primary text-primary-foreground"}`}>
           {badge}
         </span>
       )}

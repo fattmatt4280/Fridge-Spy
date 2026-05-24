@@ -86,16 +86,59 @@ async function handleSubscriptionCanceled(data: any, env: PaddleEnv) {
   }
 }
 
+async function creditScanPack(userId: string) {
+  // Find current period via latest subscription, else calendar month (UTC)
+  const { data: sub } = await getSupabase()
+    .from("subscriptions")
+    .select("current_period_start, current_period_end")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  let periodStart: string;
+  let periodEnd: string;
+  if (sub?.current_period_start && sub?.current_period_end) {
+    periodStart = sub.current_period_start;
+    periodEnd = sub.current_period_end;
+  } else {
+    const now = new Date();
+    periodStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
+    periodEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1)).toISOString();
+  }
+  const existing = await getSupabase()
+    .from("scan_usage")
+    .select("id, bonus")
+    .eq("user_id", userId)
+    .eq("period_start", periodStart)
+    .maybeSingle();
+  if (existing.data) {
+    await getSupabase()
+      .from("scan_usage")
+      .update({ bonus: (existing.data.bonus ?? 0) + 100 })
+      .eq("id", existing.data.id);
+  } else {
+    await getSupabase()
+      .from("scan_usage")
+      .insert({ user_id: userId, period_start: periodStart, period_end: periodEnd, used: 0, bonus: 100 });
+  }
+}
+
 async function handleTransactionCompleted(data: any, env: PaddleEnv) {
   // Detect lifetime one-time purchases (no subscription_id on the transaction)
   const { id, customerId, items, customData, subscriptionId } = data;
-  if (subscriptionId) return; // handled by subscription events
   const userId = customData?.userId;
   if (!userId) return;
   const item = items?.[0];
   const priceId = item?.price?.importMeta?.externalId;
+
+  // Scan add-on pack — fires whether or not a subscription exists
+  if (priceId === "scan_pack_100") {
+    await creditScanPack(userId);
+    return;
+  }
+
+  if (subscriptionId) return; // remaining cases handled by subscription events
   if (priceId !== "pro_lifetime") return;
-  // product lookup: transaction events don't include product object
   const productId = "fridgespy_pro_lifetime";
 
   await getSupabase()

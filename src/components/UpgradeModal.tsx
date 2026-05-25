@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { X, Check, Sparkles } from "lucide-react";
 import { PREMIUM_FEATURES, REASON_COPY, type LimitReason } from "@/lib/limits";
 import { toast } from "sonner";
@@ -80,8 +81,8 @@ export function UpgradeModal({
           <p className="mt-1.5 text-sm text-muted-foreground">{copy.sub}</p>
 
           <div className="mt-4 rounded-2xl border border-primary/30 bg-primary/5 p-3 text-sm">
-            <span className="font-bold text-primary">The average Pro user saves $47/month</span>
-            <span className="text-muted-foreground"> in food waste.</span>
+            <span className="font-bold text-primary">Cut food waste.</span>
+            <span className="text-muted-foreground"> Cook what you already have. Save on groceries.</span>
           </div>
 
           <ul className="mt-4 space-y-2">
@@ -118,15 +119,15 @@ export function UpgradeModal({
               title="Lifetime"
               price="$79"
               unit=" once"
-              badge="Founder"
+              badge="Best deal"
             />
           </div>
 
-          {plan === "lifetime" && (
-            <p className="mt-2 text-center text-[11px] font-semibold uppercase tracking-wider text-primary">
-              Founding Member price · locks in forever
-            </p>
-          )}
+          <p className="mt-3 text-center text-[11px] leading-relaxed text-muted-foreground">
+            {plan === "monthly" && "3 days free, then $4.99/month. Auto-renews until canceled. Cancel anytime in Account."}
+            {plan === "yearly" && "3 days free, then $34.99/year. Auto-renews until canceled. Cancel anytime in Account."}
+            {plan === "lifetime" && "One-time payment of $79 · lifetime access, no recurring charges."}
+          </p>
 
           <button
             onClick={startCheckout}
@@ -135,6 +136,12 @@ export function UpgradeModal({
           >
             {loading ? "Opening checkout…" : ctaLabel}
           </button>
+          <p className="mt-2 text-center text-[10px] leading-relaxed text-muted-foreground">
+            By continuing you agree to our{" "}
+            <Link to="/terms" className="underline hover:text-foreground">Terms</Link> and{" "}
+            <Link to="/privacy" className="underline hover:text-foreground">Privacy Policy</Link>.
+            Payments are processed by Paddle as Merchant of Record.
+          </p>
           <button
             onClick={onClose}
             className="mt-2 w-full py-2 text-center text-sm text-muted-foreground hover:text-foreground"

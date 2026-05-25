@@ -46,7 +46,7 @@ export function UpgradeModal({
     }
   }
 
-  const ctaLabel = plan === "lifetime" ? "Get Lifetime — $79" : "Start 7-Day Free Trial";
+  const ctaLabel = plan === "lifetime" ? "Get Lifetime — $79" : "Start 3-Day Free Trial";
 
   return (
     <div

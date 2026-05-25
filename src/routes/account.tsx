@@ -128,7 +128,7 @@ function AccountPage() {
           <div className="mt-2 flex items-baseline justify-between">
             <div className="text-xl font-extrabold">{planLabel}</div>
             <span className={`stat-pill ${isActive ? "bg-primary/15 text-primary" : "bg-muted/40 text-muted-foreground"}`}>
-              {isActive ? (isLifetime ? "Lifetime" : subscription?.status) : "Inactive"}
+              {statusLabel}
             </span>
           </div>
           {subscription?.cancel_at_period_end && periodEnd && (
@@ -210,6 +210,62 @@ function AccountPage() {
         >
           <LogOut size={16} /> Sign out
         </button>
+
+        {/* Danger zone */}
+        <section className="mt-6 rounded-2xl border border-destructive/30 bg-destructive/5 p-5">
+          <div className="text-xs font-semibold uppercase tracking-widest text-destructive">Danger zone</div>
+          {!showDelete ? (
+            <>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Permanently delete your account and all your data. This cannot be undone.
+              </p>
+              <button
+                onClick={() => setShowDelete(true)}
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/40 bg-background/40 py-3 text-sm font-semibold text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 size={16} /> Delete account
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="mt-2 text-sm">
+                This will permanently delete your account, inventory, shopping list, activity, and cancel any active subscription. <strong>This cannot be undone.</strong>
+              </p>
+              <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Type <span className="text-destructive">DELETE</span> to confirm
+              </p>
+              <input
+                value={deleteConfirm}
+                onChange={e => setDeleteConfirm(e.target.value)}
+                className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-base outline-none focus:border-destructive"
+                placeholder="DELETE"
+                autoFocus
+              />
+              <div className="mt-3 flex gap-2">
+                <button
+                  onClick={() => { setShowDelete(false); setDeleteConfirm(""); }}
+                  disabled={deleting}
+                  className="flex-1 rounded-xl border border-border bg-surface py-3 text-sm font-semibold disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  disabled={deleting || deleteConfirm !== "DELETE"}
+                  className="flex-1 rounded-xl bg-destructive py-3 text-sm font-bold text-destructive-foreground disabled:opacity-50"
+                >
+                  {deleting ? "Deleting…" : "Permanently delete"}
+                </button>
+              </div>
+            </>
+          )}
+        </section>
+
+        <footer className="mt-8 mb-4 flex justify-center gap-4 text-xs text-muted-foreground">
+          <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
+          <span>·</span>
+          <Link to="/terms" className="hover:text-foreground">Terms</Link>
+        </footer>
       </div>
     </div>
   );

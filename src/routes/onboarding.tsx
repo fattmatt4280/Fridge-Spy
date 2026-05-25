@@ -31,14 +31,11 @@ function Onboarding() {
     }
   }, [i]);
 
-  const finish = (dest: "/login" | "/", { askNotify = false } = {}) => {
+  const finish = (dest: "/login" | "/") => {
     try {
       localStorage.setItem(ONBOARD_KEY, "1");
       if (dest === "/") localStorage.setItem("fridgespy.guest", "1");
     } catch {}
-    if (askNotify && typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
-      try { Notification.requestPermission().catch(() => {}); } catch {}
-    }
     navigate({ to: dest, replace: true });
   };
 
@@ -84,6 +81,11 @@ function Onboarding() {
           >
             Try as Guest
           </button>
+          <p className="pt-2 text-center text-[10px] leading-relaxed text-muted-foreground">
+            By continuing you agree to our{" "}
+            <Link to="/terms" className="underline hover:text-foreground">Terms</Link> and{" "}
+            <Link to="/privacy" className="underline hover:text-foreground">Privacy Policy</Link>.
+          </p>
         </div>
       ) : (
         <button

@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { ChevronLeft, Sparkles, LogOut, ExternalLink, Camera } from "lucide-react";
+import { ChevronLeft, Sparkles, LogOut, ExternalLink, Camera, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { createPortalSession } from "@/utils/payments.functions";
+import { deleteAccount } from "@/lib/account.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { useScanQuota } from "@/hooks/useScanQuota";
@@ -21,9 +22,13 @@ function AccountPage() {
   const navigate = useNavigate();
   const { subscription, isActive, isLifetime, env } = useSubscription();
   const portalFn = useServerFn(createPortalSession);
+  const deleteAccountFn = useServerFn(deleteAccount);
   const { data: quota } = useScanQuota();
   const { openCheckout, loading: buyingPack } = usePaddleCheckout();
   const [opening, setOpening] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   async function buyPack() {
     try {
@@ -54,6 +59,36 @@ function AccountPage() {
     await supabase.auth.signOut();
     navigate({ to: "/login", replace: true });
   }
+
+  async function confirmDelete() {
+    if (deleteConfirm !== "DELETE") {
+      toast.error("Type DELETE to confirm");
+      return;
+    }
+    setDeleting(true);
+    try {
+      await deleteAccountFn();
+      await supabase.auth.signOut();
+      toast.success("Account deleted");
+      navigate({ to: "/login", replace: true });
+    } catch (e: any) {
+      toast.error(e?.message || "Couldn't delete account");
+      setDeleting(false);
+    }
+  }
+
+  const statusLabel = (() => {
+    if (!isActive) return "Inactive";
+    if (isLifetime) return "Lifetime";
+    switch (subscription?.status) {
+      case "active": return "Active";
+      case "trialing": return "Trial";
+      case "past_due": return "Payment issue";
+      case "paused": return "Paused";
+      case "canceled": return "Canceling";
+      default: return subscription?.status ?? "Active";
+    }
+  })();
 
   const planLabel = subscription
     ? subscription.price_id === "pro_lifetime"

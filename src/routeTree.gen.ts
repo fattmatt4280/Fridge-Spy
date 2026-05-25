@@ -9,10 +9,12 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ShoppingRouteImport } from './routes/shopping'
 import { Route as ScanReceiptRouteImport } from './routes/scan-receipt'
 import { Route as ScanFridgeRouteImport } from './routes/scan-fridge'
 import { Route as RecipesRouteImport } from './routes/recipes'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InventoryRouteImport } from './routes/inventory'
@@ -23,6 +25,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ItemIdRouteImport } from './routes/item.$id'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShoppingRoute = ShoppingRouteImport.update({
   id: '/shopping',
   path: '/shopping',
@@ -41,6 +48,11 @@ const ScanFridgeRoute = ScanFridgeRouteImport.update({
 const RecipesRoute = RecipesRouteImport.update({
   id: '/recipes',
   path: '/recipes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -98,10 +110,12 @@ export interface FileRoutesByFullPath {
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/privacy': typeof PrivacyRoute
   '/recipes': typeof RecipesRoute
   '/scan-fridge': typeof ScanFridgeRoute
   '/scan-receipt': typeof ScanReceiptRoute
   '/shopping': typeof ShoppingRoute
+  '/terms': typeof TermsRoute
   '/item/$id': typeof ItemIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -113,10 +127,12 @@ export interface FileRoutesByTo {
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/privacy': typeof PrivacyRoute
   '/recipes': typeof RecipesRoute
   '/scan-fridge': typeof ScanFridgeRoute
   '/scan-receipt': typeof ScanReceiptRoute
   '/shopping': typeof ShoppingRoute
+  '/terms': typeof TermsRoute
   '/item/$id': typeof ItemIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -129,10 +145,12 @@ export interface FileRoutesById {
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/privacy': typeof PrivacyRoute
   '/recipes': typeof RecipesRoute
   '/scan-fridge': typeof ScanFridgeRoute
   '/scan-receipt': typeof ScanReceiptRoute
   '/shopping': typeof ShoppingRoute
+  '/terms': typeof TermsRoute
   '/item/$id': typeof ItemIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -146,10 +164,12 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/login'
     | '/onboarding'
+    | '/privacy'
     | '/recipes'
     | '/scan-fridge'
     | '/scan-receipt'
     | '/shopping'
+    | '/terms'
     | '/item/$id'
     | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -161,10 +181,12 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/login'
     | '/onboarding'
+    | '/privacy'
     | '/recipes'
     | '/scan-fridge'
     | '/scan-receipt'
     | '/shopping'
+    | '/terms'
     | '/item/$id'
     | '/api/public/payments/webhook'
   id:
@@ -176,10 +198,12 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/login'
     | '/onboarding'
+    | '/privacy'
     | '/recipes'
     | '/scan-fridge'
     | '/scan-receipt'
     | '/shopping'
+    | '/terms'
     | '/item/$id'
     | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
@@ -192,16 +216,25 @@ export interface RootRouteChildren {
   InventoryRoute: typeof InventoryRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
+  PrivacyRoute: typeof PrivacyRoute
   RecipesRoute: typeof RecipesRoute
   ScanFridgeRoute: typeof ScanFridgeRoute
   ScanReceiptRoute: typeof ScanReceiptRoute
   ShoppingRoute: typeof ShoppingRoute
+  TermsRoute: typeof TermsRoute
   ItemIdRoute: typeof ItemIdRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/shopping': {
       id: '/shopping'
       path: '/shopping'
@@ -228,6 +261,13 @@ declare module '@tanstack/react-router' {
       path: '/recipes'
       fullPath: '/recipes'
       preLoaderRoute: typeof RecipesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -304,23 +344,15 @@ const rootRouteChildren: RootRouteChildren = {
   InventoryRoute: InventoryRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
+  PrivacyRoute: PrivacyRoute,
   RecipesRoute: RecipesRoute,
   ScanFridgeRoute: ScanFridgeRoute,
   ScanReceiptRoute: ScanReceiptRoute,
   ShoppingRoute: ShoppingRoute,
+  TermsRoute: TermsRoute,
   ItemIdRoute: ItemIdRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

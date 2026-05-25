@@ -1,45 +1,62 @@
 
-# Honest recommendation before we wire up RevenueCat
+# App Store + Play Store Compliance Pass
 
-You haven't built anything in RevenueCat yet (no products, no entitlements, no Stripe connected inside RC). Before we go further, I want to flag that **RevenueCat is probably the wrong tool for your situation** and switching now will save you a lot of time and ongoing fees.
+## Phase 1 — Web/PWA fixes (do now, all frontend)
 
-## Why RevenueCat doesn't fit here
+### 1. Trial length: 7 days → 3 days
+- `src/components/UpgradeModal.tsx`: change CTA label `"Start 7-Day Free Trial"` → `"Start 3-Day Free Trial"`.
+- Add a small disclosure line directly under the CTA (required by Apple 3.1.2 / Play subscription policy when we eventually go native, and good practice now):
+  - `"3 days free, then $4.99/month. Auto-renews until canceled. Cancel anytime in Account."` (monthly)
+  - `"3 days free, then $34.99/year. Auto-renews until canceled."` (yearly)
+  - Lifetime: `"One-time payment. No recurring charges."`
+- Note: actual 3-day trial period must also be configured in Paddle's product settings — I'll flag this for you to set in the Paddle dashboard after the code change lands (it's not something Lovable tools can set).
 
-RevenueCat's main value is unifying **iOS App Store + Google Play + web** subscriptions under one entitlement. You don't have a native app — FridgeSpy is a PWA. For web-only billing, RC Web Billing is just a wrapper around Stripe Checkout, and you pay:
+### 2. Remove unsubstantiated claims
+- `UpgradeModal.tsx`: remove `"The average Pro user saves $47/month in food waste."` Replace with neutral copy: `"Cut food waste. Cook what you already have. Save on groceries."`
+- `src/routes/onboarding.tsx` Slide 1: keep the `$1,500` figure but add a small `Source: USDA` line beneath it so it's a cited stat, not a marketing claim.
 
-- Stripe's normal fees (~2.9% + 30¢)
-- **+ RevenueCat's 1% fee on top**
-- + you maintain a second dashboard (products in RC, prices synced to Stripe)
-- + you have to set up webhook signing, entitlement sync, and a `/api/public/revenuecat` route from scratch
+### 3. Privacy Policy + Terms of Service pages
+- Create `src/routes/privacy.tsx` and `src/routes/terms.tsx` as full content routes with proper `head()` metadata.
+- Content drafted to cover Paddle's seller requirements (Terms, Refund Policy embedded in Terms, Privacy Notice) — including the required Paddle Merchant-of-Record disclosure and a 30-day refund window.
+- Add footer links to both pages from: `login.tsx`, `onboarding.tsx` (last slide), `account.tsx`, and the paywall modal (above the CTA).
+- **I need your legal business name** (or your personal name if you're not incorporated) to put on these pages — Paddle requires it. Please drop that in a reply before/when you approve this plan.
 
-For lifetime one-time purchases especially, this is overkill.
+### 4. In-app Account Deletion
+- Add a `deleteAccount` server function (`src/lib/account.functions.ts`) using `requireSupabaseAuth` middleware + `supabaseAdmin` to:
+  - Delete user's `items`, `activity_log`, `shopping_list`, `profiles` rows (cascades via FKs where possible).
+  - Cancel any active Paddle subscription via the Paddle API.
+  - Call `supabase.auth.admin.deleteUser(userId)` to remove the auth record.
+- Add a "Delete Account" section at the bottom of `src/routes/account.tsx` with a confirmation dialog (`"Type DELETE to confirm. This is permanent and cannot be undone."`).
 
-## What I recommend instead: Lovable's built-in Stripe Payments
+### 5. Notification permission pre-prompt
+- `src/routes/onboarding.tsx`: replace the silent `Notification.requestPermission()` call in `finish()` with a new slide (or modal step) that explains *why* — `"Get a heads-up before food expires?"` with Allow / Not now buttons. Only call the native prompt after the user taps Allow.
 
-Lovable has a native Stripe integration that:
+### 6. Production env sanity
+- Verify `.env.production` contains a `live_...` Paddle token (not `test_...`). I'll read both env files and confirm; if production still has a test token, I'll flag it (you'll need to set the live token via the Lovable env UI — I can't write `.env.production` secrets directly).
+- The `PaymentTestModeBanner` already keys off the token prefix, so a correct live token automatically hides the banner in production.
 
-- Is **already approved for digital subscriptions** like FridgeSpy Pro
-- Needs **no Stripe account or API keys from you** — Lovable provisions a test env immediately
-- Handles webhooks, entitlement sync, and the `premium_user` flag flip automatically
-- Supports monthly, yearly, **and lifetime** purchases in the same catalog
-- Optionally handles tax/VAT/compliance globally (Stripe acts as merchant of record)
-- No second dashboard, no extra 1% fee
+### 7. Wording cleanup that reviewers nitpick
+- `account.tsx`: map raw Paddle statuses (`trialing`, `past_due`) to user-friendly labels (`"Trial"`, `"Payment issue"`).
+- `UpgradeModal.tsx`: tweak lifetime copy from `"Founding Member price · locks in forever"` to `"One-time payment · lifetime access, no recurring charges"`.
 
-The `premium_user` boolean on `profiles` (already in your schema) and the `usePremium` hook (already built) wire in cleanly — the `UpgradeModal` just needs its CTA pointed at a checkout session.
+## Phase 2 — Native mobile billing (do later, when you wrap for the stores)
 
-## Plan
+This is **not** something we can implement inside the current Lovable web project — it requires a native shell (Capacitor recommended, since it works with your existing React/Vite code). When you're ready to submit to App Store / Play:
 
-1. **Run the Stripe eligibility check** (`recommend_payment_provider`) to confirm FridgeSpy classifies as digital SaaS — expected to pass.
-2. **Enable Stripe Payments** (`enable_stripe_payments`) — creates test env instantly.
-3. **Decide tax handling** — recommend full compliance handling (option 1) since FridgeSpy is digital-only and you'll have international users.
-4. **Create 3 products**: Pro Monthly, Pro Annual, Pro Lifetime — with prices you choose.
-5. **Wire checkout**: `UpgradeModal` CTA → `createCheckoutSession` server fn → Stripe-hosted checkout → webhook flips `profiles.premium_user = true`.
-6. **Add a "Manage subscription" link** on the profile screen → Stripe customer portal.
+1. Wrap the PWA with Capacitor (`npx cap init`, add `ios` and `android` platforms — done outside Lovable in your local IDE/Xcode/Android Studio).
+2. Add `@revenuecat/purchases-capacitor` or the raw StoreKit 2 / Play Billing plugins.
+3. Create matching IAP products in App Store Connect and Play Console: `pro_monthly`, `pro_yearly`, `pro_lifetime` (must mirror the Paddle IDs so the same `premium_user` flag flips).
+4. Detect platform at runtime: web → Paddle (current code), iOS/Android → native IAP. Branch in `UpgradeModal.tsx` and `usePaddleCheckout.ts`.
+5. Add a server function to verify Apple/Google receipts and flip `premium_user` (mirrors the existing Paddle webhook behavior).
+6. Add "Restore Purchases" button on `account.tsx` (Apple 3.1.1 requirement).
 
-You stay in Lovable, no RC dashboard, no second integration to maintain.
+I'll write a separate detailed plan for Phase 2 when you reach that stage — flagging it now so you know the web fixes alone won't unlock store submission.
 
-## If you still want RevenueCat
+---
 
-That's totally valid if you have firm plans to ship a native iOS/Android wrapper soon — then RC starts paying for itself. In that case, tell me and I'll proceed with the original RC plan (you'll need to: create entitlement "pro" + offering "default" + 3 packages in RC dashboard, connect Stripe inside RC, then hand me the public web key + a webhook secret).
+## What I need from you to proceed with Phase 1
 
-**Which way do you want to go — built-in Stripe (recommended) or stick with RevenueCat?**
+1. **Your legal business name** (or personal name) for the Privacy Policy and Terms.
+2. Approval of this plan.
+
+Once approved I'll do all of Phase 1 in one pass. Want me to proceed?

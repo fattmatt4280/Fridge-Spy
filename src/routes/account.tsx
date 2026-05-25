@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { ChevronLeft, Sparkles, LogOut, ExternalLink, Camera } from "lucide-react";
+import { ChevronLeft, Sparkles, LogOut, ExternalLink, Camera, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { createPortalSession } from "@/utils/payments.functions";
+import { deleteAccount } from "@/lib/account.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { useScanQuota } from "@/hooks/useScanQuota";
@@ -21,9 +22,13 @@ function AccountPage() {
   const navigate = useNavigate();
   const { subscription, isActive, isLifetime, env } = useSubscription();
   const portalFn = useServerFn(createPortalSession);
+  const deleteAccountFn = useServerFn(deleteAccount);
   const { data: quota } = useScanQuota();
   const { openCheckout, loading: buyingPack } = usePaddleCheckout();
   const [opening, setOpening] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   async function buyPack() {
     try {
@@ -54,6 +59,36 @@ function AccountPage() {
     await supabase.auth.signOut();
     navigate({ to: "/login", replace: true });
   }
+
+  async function confirmDelete() {
+    if (deleteConfirm !== "DELETE") {
+      toast.error("Type DELETE to confirm");
+      return;
+    }
+    setDeleting(true);
+    try {
+      await deleteAccountFn();
+      await supabase.auth.signOut();
+      toast.success("Account deleted");
+      navigate({ to: "/login", replace: true });
+    } catch (e: any) {
+      toast.error(e?.message || "Couldn't delete account");
+      setDeleting(false);
+    }
+  }
+
+  const statusLabel = (() => {
+    if (!isActive) return "Inactive";
+    if (isLifetime) return "Lifetime";
+    switch (subscription?.status) {
+      case "active": return "Active";
+      case "trialing": return "Trial";
+      case "past_due": return "Payment issue";
+      case "paused": return "Paused";
+      case "canceled": return "Canceling";
+      default: return subscription?.status ?? "Active";
+    }
+  })();
 
   const planLabel = subscription
     ? subscription.price_id === "pro_lifetime"
@@ -93,7 +128,7 @@ function AccountPage() {
           <div className="mt-2 flex items-baseline justify-between">
             <div className="text-xl font-extrabold">{planLabel}</div>
             <span className={`stat-pill ${isActive ? "bg-primary/15 text-primary" : "bg-muted/40 text-muted-foreground"}`}>
-              {isActive ? (isLifetime ? "Lifetime" : subscription?.status) : "Inactive"}
+              {statusLabel}
             </span>
           </div>
           {subscription?.cancel_at_period_end && periodEnd && (
@@ -175,6 +210,62 @@ function AccountPage() {
         >
           <LogOut size={16} /> Sign out
         </button>
+
+        {/* Danger zone */}
+        <section className="mt-6 rounded-2xl border border-destructive/30 bg-destructive/5 p-5">
+          <div className="text-xs font-semibold uppercase tracking-widest text-destructive">Danger zone</div>
+          {!showDelete ? (
+            <>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Permanently delete your account and all your data. This cannot be undone.
+              </p>
+              <button
+                onClick={() => setShowDelete(true)}
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/40 bg-background/40 py-3 text-sm font-semibold text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 size={16} /> Delete account
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="mt-2 text-sm">
+                This will permanently delete your account, inventory, shopping list, activity, and cancel any active subscription. <strong>This cannot be undone.</strong>
+              </p>
+              <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Type <span className="text-destructive">DELETE</span> to confirm
+              </p>
+              <input
+                value={deleteConfirm}
+                onChange={e => setDeleteConfirm(e.target.value)}
+                className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-base outline-none focus:border-destructive"
+                placeholder="DELETE"
+                autoFocus
+              />
+              <div className="mt-3 flex gap-2">
+                <button
+                  onClick={() => { setShowDelete(false); setDeleteConfirm(""); }}
+                  disabled={deleting}
+                  className="flex-1 rounded-xl border border-border bg-surface py-3 text-sm font-semibold disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  disabled={deleting || deleteConfirm !== "DELETE"}
+                  className="flex-1 rounded-xl bg-destructive py-3 text-sm font-bold text-destructive-foreground disabled:opacity-50"
+                >
+                  {deleting ? "Deleting…" : "Permanently delete"}
+                </button>
+              </div>
+            </>
+          )}
+        </section>
+
+        <footer className="mt-8 mb-4 flex justify-center gap-4 text-xs text-muted-foreground">
+          <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
+          <span>·</span>
+          <Link to="/terms" className="hover:text-foreground">Terms</Link>
+        </footer>
       </div>
     </div>
   );

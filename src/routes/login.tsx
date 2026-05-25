@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/ui-fs/Logo";
@@ -81,6 +81,12 @@ function LoginPage() {
           {mode === "signin" ? "No account? " : "Already have an account? "}
           <span className="font-semibold text-primary">{mode === "signin" ? "Sign up" : "Sign in"}</span>
         </button>
+
+        <p className="mt-8 text-center text-[11px] leading-relaxed text-muted-foreground">
+          By continuing you agree to our{" "}
+          <Link to="/terms" className="underline hover:text-foreground">Terms</Link> and{" "}
+          <Link to="/privacy" className="underline hover:text-foreground">Privacy Policy</Link>.
+        </p>
       </div>
     </div>
   );

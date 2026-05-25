@@ -31,12 +31,12 @@ function Onboarding() {
     }
   }, [i]);
 
-  const finish = (dest: "/login" | "/") => {
+  const finish = (dest: "/login" | "/", { askNotify = false } = {}) => {
     try {
       localStorage.setItem(ONBOARD_KEY, "1");
       if (dest === "/") localStorage.setItem("fridgespy.guest", "1");
     } catch {}
-    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+    if (askNotify && typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
       try { Notification.requestPermission().catch(() => {}); } catch {}
     }
     navigate({ to: dest, replace: true });

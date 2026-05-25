@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Logo } from "@/components/ui-fs/Logo";
 import { Camera, Receipt, Barcode, ArrowRight } from "lucide-react";
@@ -143,6 +143,14 @@ function Slide2() {
 }
 
 function Slide3({ score }: { score: number }) {
+  const [notifAsked, setNotifAsked] = useState(false);
+  const canAskNotif = typeof window !== "undefined" && "Notification" in window && Notification.permission === "default";
+
+  async function askNotif() {
+    setNotifAsked(true);
+    try { await Notification.requestPermission(); } catch {}
+  }
+
   return (
     <>
       <div className="mb-5">
@@ -152,6 +160,29 @@ function Slide3({ score }: { score: number }) {
       <p className="mt-3 max-w-xs text-sm text-muted-foreground">
         Track your kitchen. Cook smarter. Save money.
       </p>
+
+      {canAskNotif && !notifAsked && (
+        <div className="mt-6 w-full max-w-sm rounded-2xl border border-border bg-surface p-4 text-left">
+          <div className="text-sm font-bold">Get a heads-up before food expires?</div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            We'll only notify you about items about to go bad. You can turn this off anytime.
+          </p>
+          <div className="mt-3 flex gap-2">
+            <button
+              onClick={() => setNotifAsked(true)}
+              className="flex-1 rounded-lg border border-border bg-background/40 py-2 text-xs font-semibold text-muted-foreground"
+            >
+              Not now
+            </button>
+            <button
+              onClick={askNotif}
+              className="flex-1 rounded-lg bg-primary py-2 text-xs font-bold text-primary-foreground"
+            >
+              Allow alerts
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

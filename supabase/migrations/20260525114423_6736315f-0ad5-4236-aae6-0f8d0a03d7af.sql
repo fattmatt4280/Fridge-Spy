@@ -1,0 +1,2 @@
+ALTER TABLE public.items DROP CONSTRAINT items_location_check;
+ALTER TABLE public.items ADD CONSTRAINT items_location_check CHECK (location = ANY (ARRAY['fridge'::text, 'freezer'::text, 'pantry'::text, 'counter'::text]));

@@ -108,6 +108,7 @@ function Slide1() {
       <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-foreground">Stop Throwing Money Away</h1>
       <div className="mt-5 text-5xl font-extrabold tracking-tight text-primary tabular-nums">$1,500</div>
       <p className="mt-1 max-w-xs text-xs uppercase tracking-wider text-muted-foreground">average annual food waste per American household</p>
+      <p className="mt-0.5 text-[10px] text-muted-foreground/70">Source: USDA</p>
       <p className="mt-5 max-w-xs text-base font-semibold">FridgeSpy fixes that.</p>
     </>
   );

@@ -84,7 +84,10 @@ export const scanFridge = createServerFn({ method: "POST" })
       mediaType: z.enum(["image/jpeg", "image/png", "image/webp", "image/gif"]),
     }).parse(input)
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    if (!(await isPremium(context.userId))) {
+      return { error: "upgrade_required" as const, items: [] };
+    }
     const json = await callClaude({
       model: MODEL,
       max_tokens: 2048,

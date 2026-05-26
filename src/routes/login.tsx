@@ -5,7 +5,16 @@ import { Logo } from "@/components/ui-fs/Logo";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Sign in — FridgeSpy" }] }),
+  head: () => ({
+    meta: [
+      { title: "Sign in to FridgeSpy" },
+      { name: "description", content: "Sign in or create your FridgeSpy account to track your kitchen inventory, get expiry alerts, and generate recipes from what you already have." },
+      { property: "og:title", content: "Sign in to FridgeSpy" },
+      { property: "og:description", content: "Sign in or create a FridgeSpy account to start tracking your kitchen." },
+      { property: "og:url", content: "https://fridgespy.com/login" },
+    ],
+    links: [{ rel: "canonical", href: "https://fridgespy.com/login" }],
+  }),
   component: LoginPage,
 });
 

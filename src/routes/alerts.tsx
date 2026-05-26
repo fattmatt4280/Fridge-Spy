@@ -1,9 +1,10 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Bell, LogOut } from "lucide-react";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { ArrowLeft, Bell, LogOut, ChefHat } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { daysUntil, expiryLabel, categoryEmoji } from "@/lib/expiry";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/alerts")({

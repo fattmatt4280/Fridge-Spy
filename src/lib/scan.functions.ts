@@ -99,18 +99,23 @@ export const scanExpiryLabel = createServerFn({ method: "POST" })
       return { error: "upgrade_required" as const };
     }
 
-    // 2. Quota gate
+    // 2. Atomic quota reserve — increments only if under cap, no read/write race.
     const period = await resolvePeriod(userId);
     const row = await getOrCreatePeriodRow(userId, period);
     const total = FREE_SCAN_QUOTA + (row.bonus ?? 0);
-    if (row.used >= total) {
+    const { data: reserveRows, error: reserveErr } = await (supabaseAdmin as any)
+      .rpc("increment_scan_usage", { p_row_id: row.id, p_max: total });
+    if (reserveErr) throw new Error(reserveErr.message);
+    const reserve = Array.isArray(reserveRows) ? reserveRows[0] : reserveRows;
+    if (!reserve?.accepted) {
       return {
         error: "quota_exceeded" as const,
-        used: row.used,
+        used: reserve?.new_used ?? row.used,
         included: FREE_SCAN_QUOTA,
         bonus: row.bonus ?? 0,
       };
     }
+    const newUsed: number = reserve.new_used;
 
     // 3. Call Gemini Flash via Lovable AI Gateway
     const apiKey = process.env.LOVABLE_API_KEY;
@@ -162,18 +167,13 @@ If only month/year visible, use the last day of that month. Assume the date is c
       parsed = {};
     }
 
-    // 4. Increment usage (only on a real call — even if no date was found)
-    await supabaseAdmin
-      .from("scan_usage")
-      .update({ used: row.used + 1 })
-      .eq("id", row.id);
-
+    // 4. Usage was already incremented atomically in step 2.
     return {
       ok: true as const,
       expiry_date: parsed.expiry_date ?? null,
       kind: parsed.kind ?? null,
       raw: parsed.raw ?? null,
       confidence: parsed.confidence ?? "low",
-      remaining: Math.max(0, total - (row.used + 1)),
+      remaining: Math.max(0, total - newUsed),
     };
   });

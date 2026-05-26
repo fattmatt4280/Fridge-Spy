@@ -1,9 +1,20 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { FREE_RECIPE_PER_DAY } from "@/lib/limits";
 import { z } from "zod";
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const MODEL = "claude-sonnet-4-20250514";
+
+async function isPremium(userId: string): Promise<boolean> {
+  const { data } = await supabaseAdmin
+    .from("profiles")
+    .select("premium_user")
+    .eq("user_id", userId)
+    .maybeSingle();
+  return !!data?.premium_user;
+}
 
 async function callClaude(body: any): Promise<any> {
   const key = process.env.ANTHROPIC_API_KEY;
@@ -41,7 +52,10 @@ export const scanReceipt = createServerFn({ method: "POST" })
       mediaType: z.enum(["image/jpeg", "image/png", "image/webp", "image/gif"]),
     }).parse(input)
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    if (!(await isPremium(context.userId))) {
+      return { error: "upgrade_required" as const, items: [] };
+    }
     const json = await callClaude({
       model: MODEL,
       max_tokens: 2048,
@@ -70,7 +84,10 @@ export const scanFridge = createServerFn({ method: "POST" })
       mediaType: z.enum(["image/jpeg", "image/png", "image/webp", "image/gif"]),
     }).parse(input)
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    if (!(await isPremium(context.userId))) {
+      return { error: "upgrade_required" as const, items: [] };
+    }
     const json = await callClaude({
       model: MODEL,
       max_tokens: 2048,
@@ -107,8 +124,23 @@ export const generateRecipes = createServerFn({ method: "POST" })
     }).parse(input)
   )
   .handler(async ({ data, context }) => {
-    const { supabase } = context;
+    const { supabase, userId } = context;
     const count = data.count ?? 3;
+
+    // Server-side daily quota for free users (mirrors the client gate).
+    if (!(await isPremium(userId))) {
+      const since = new Date();
+      since.setUTCHours(0, 0, 0, 0);
+      const { count: usedToday } = await supabase
+        .from("activity_log")
+        .select("*", { count: "exact", head: true })
+        .eq("kind", "recipe-gen")
+        .gte("created_at", since.toISOString());
+      if ((usedToday ?? 0) >= FREE_RECIPE_PER_DAY) {
+        return { error: "limit_reached" as const, recipes: [] };
+      }
+    }
+
 
     // Pull personalization context server-side so the client doesn't have to
     // know about it and so it's always fresh / authoritative.

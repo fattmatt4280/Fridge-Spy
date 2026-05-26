@@ -73,6 +73,7 @@ function HomePage() {
 
   return (
     <div className="px-4 pt-[max(env(safe-area-inset-top),1rem)]">
+      <h1 className="sr-only">FridgeSpy — your kitchen, organized</h1>
       <header className="flex items-center justify-between py-3">
         <Logo />
         <div className="flex items-center gap-1">

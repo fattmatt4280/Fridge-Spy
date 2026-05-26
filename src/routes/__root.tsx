@@ -89,11 +89,20 @@ function RootComponent() {
       router.invalidate();
       queryClient.invalidateQueries();
       // Flush onboarding cooking prefs into the user's profile once they sign in.
+      // Strict allowlist — never write raw localStorage JSON to the DB.
       if (session?.user && typeof window !== "undefined") {
         const raw = localStorage.getItem("fridgespy.pending_prefs");
         if (raw) {
           try {
-            const prefs = JSON.parse(raw);
+            const PrefsSchema = z.object({
+              cuisines_liked: z.array(z.string().min(1).max(60)).max(30).optional(),
+              cuisines_learning: z.array(z.string().min(1).max(60)).max(30).optional(),
+              dietary_restrictions: z.array(z.string().min(1).max(60)).max(30).optional(),
+              avoid_ingredients: z.array(z.string().min(1).max(60)).max(50).optional(),
+              skill_level: z.enum(["beginner", "comfortable", "advanced"]).optional(),
+              typical_cook_time_min: z.number().int().min(5).max(240).optional(),
+            }).strict();
+            const prefs = PrefsSchema.parse(JSON.parse(raw));
             supabase.from("profiles").update(prefs).eq("user_id", session.user.id)
               .then(() => localStorage.removeItem("fridgespy.pending_prefs"));
           } catch { localStorage.removeItem("fridgespy.pending_prefs"); }

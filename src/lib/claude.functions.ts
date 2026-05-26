@@ -124,8 +124,23 @@ export const generateRecipes = createServerFn({ method: "POST" })
     }).parse(input)
   )
   .handler(async ({ data, context }) => {
-    const { supabase } = context;
+    const { supabase, userId } = context;
     const count = data.count ?? 3;
+
+    // Server-side daily quota for free users (mirrors the client gate).
+    if (!(await isPremium(userId))) {
+      const since = new Date();
+      since.setUTCHours(0, 0, 0, 0);
+      const { count: usedToday } = await supabase
+        .from("activity_log")
+        .select("*", { count: "exact", head: true })
+        .eq("kind", "recipe-gen")
+        .gte("created_at", since.toISOString());
+      if ((usedToday ?? 0) >= FREE_RECIPE_PER_DAY) {
+        return { error: "limit_reached" as const, recipes: [] };
+      }
+    }
+
 
     // Pull personalization context server-side so the client doesn't have to
     // know about it and so it's always fresh / authoritative.

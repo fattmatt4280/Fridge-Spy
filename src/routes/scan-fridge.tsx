@@ -12,7 +12,16 @@ import { usePremium, useUpgradeGate } from "@/hooks/usePremium";
 import { UpgradeModal } from "@/components/UpgradeModal";
 
 export const Route = createFileRoute("/scan-fridge")({
-  head: () => ({ meta: [{ title: "Scan Fridge — FridgeSpy" }] }),
+  head: () => ({
+    meta: [
+      { title: "Scan your fridge — FridgeSpy" },
+      { name: "description", content: "Snap one photo of your fridge and let FridgeSpy's AI log every item it sees. The fastest way to set up your kitchen inventory." },
+      { property: "og:title", content: "Scan your fridge with AI — FridgeSpy" },
+      { property: "og:description", content: "Snap one photo and let AI log every item in your fridge." },
+      { property: "og:url", content: "https://fridgespy.com/scan-fridge" },
+    ],
+    links: [{ rel: "canonical", href: "https://fridgespy.com/scan-fridge" }],
+  }),
   component: ScanFridgePage,
 });
 

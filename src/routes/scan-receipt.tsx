@@ -220,7 +220,7 @@ function ScanReceiptPage() {
       {preview && (
         <div className="mt-3">
           <div className="relative overflow-hidden rounded-2xl border border-border bg-surface">
-            <img src={preview} alt="receipt" className="max-h-64 w-full object-contain" />
+            <img src={preview} alt="Grocery receipt being scanned" className="max-h-64 w-full object-contain" />
             {scan.isPending && (
               <div className="scanning-shimmer absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm">
                 <div className="flex items-center gap-2 rounded-full bg-surface px-4 py-2 text-sm font-semibold">

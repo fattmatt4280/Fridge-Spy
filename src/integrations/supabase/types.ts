@@ -320,6 +320,13 @@ export type Database = {
         Args: { check_env?: string; user_uuid: string }
         Returns: boolean
       }
+      increment_scan_usage: {
+        Args: { p_max: number; p_row_id: string }
+        Returns: {
+          accepted: boolean
+          new_used: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

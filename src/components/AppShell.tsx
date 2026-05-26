@@ -76,7 +76,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="mx-auto min-h-screen max-w-md bg-background pb-24">
       <PaymentTestModeBanner />
-      {children}
+      <main>{children}</main>
       {!isPublic && user && <BottomNav />}
     </div>
   );

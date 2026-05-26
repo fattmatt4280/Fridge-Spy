@@ -12,7 +12,16 @@ import { usePremium, useUpgradeGate } from "@/hooks/usePremium";
 import { UpgradeModal } from "@/components/UpgradeModal";
 
 export const Route = createFileRoute("/scan-receipt")({
-  head: () => ({ meta: [{ title: "Snap Receipt — FridgeSpy" }] }),
+  head: () => ({
+    meta: [
+      { title: "Snap a receipt — FridgeSpy" },
+      { name: "description", content: "Photograph any grocery receipt and FridgeSpy will add every item to your inventory in seconds, with auto-categorization and expiry estimates." },
+      { property: "og:title", content: "Snap a grocery receipt — FridgeSpy" },
+      { property: "og:description", content: "Photograph a receipt and add every grocery item to your inventory in seconds." },
+      { property: "og:url", content: "https://fridgespy.com/scan-receipt" },
+    ],
+    links: [{ rel: "canonical", href: "https://fridgespy.com/scan-receipt" }],
+  }),
   component: ScanReceiptPage,
 });
 
@@ -211,7 +220,7 @@ function ScanReceiptPage() {
       {preview && (
         <div className="mt-3">
           <div className="relative overflow-hidden rounded-2xl border border-border bg-surface">
-            <img src={preview} alt="receipt" className="max-h-64 w-full object-contain" />
+            <img src={preview} alt="Grocery receipt being scanned" className="max-h-64 w-full object-contain" />
             {scan.isPending && (
               <div className="scanning-shimmer absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm">
                 <div className="flex items-center gap-2 rounded-full bg-surface px-4 py-2 text-sm font-semibold">

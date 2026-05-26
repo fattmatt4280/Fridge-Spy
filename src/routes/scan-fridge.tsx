@@ -12,7 +12,16 @@ import { usePremium, useUpgradeGate } from "@/hooks/usePremium";
 import { UpgradeModal } from "@/components/UpgradeModal";
 
 export const Route = createFileRoute("/scan-fridge")({
-  head: () => ({ meta: [{ title: "Scan Fridge — FridgeSpy" }] }),
+  head: () => ({
+    meta: [
+      { title: "Scan your fridge — FridgeSpy" },
+      { name: "description", content: "Snap one photo of your fridge and let FridgeSpy's AI log every item it sees. The fastest way to set up your kitchen inventory." },
+      { property: "og:title", content: "Scan your fridge with AI — FridgeSpy" },
+      { property: "og:description", content: "Snap one photo and let AI log every item in your fridge." },
+      { property: "og:url", content: "https://fridgespy.com/scan-fridge" },
+    ],
+    links: [{ rel: "canonical", href: "https://fridgespy.com/scan-fridge" }],
+  }),
   component: ScanFridgePage,
 });
 
@@ -150,7 +159,7 @@ function ScanFridgePage() {
       {preview && (
         <div className="mt-3">
           <div className="relative overflow-hidden rounded-2xl border border-border bg-surface">
-            <img src={preview} alt="fridge" className="max-h-72 w-full object-cover" />
+            <img src={preview} alt="Fridge interior being scanned" className="max-h-72 w-full object-cover" />
             {scan.isPending && (
               <div className="scanning-shimmer absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm">
                 <div className="flex items-center gap-2 rounded-full bg-surface px-4 py-2 text-sm font-semibold">

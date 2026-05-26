@@ -17,7 +17,16 @@ const LOC_EMOJI: Record<Exclude<Location, "all">, string> = {
 };
 
 export const Route = createFileRoute("/inventory")({
-  head: () => ({ meta: [{ title: "Inventory — FridgeSpy" }] }),
+  head: () => ({
+    meta: [
+      { title: "Your Inventory — FridgeSpy" },
+      { name: "description", content: "See every item in your fridge, freezer, and pantry at a glance. Filter by location, expiry, or category and never lose track of groceries again." },
+      { property: "og:title", content: "Your Inventory — FridgeSpy" },
+      { property: "og:description", content: "See every item in your fridge, freezer, and pantry at a glance." },
+      { property: "og:url", content: "https://fridgespy.com/inventory" },
+    ],
+    links: [{ rel: "canonical", href: "https://fridgespy.com/inventory" }],
+  }),
   validateSearch: (s: Record<string, unknown>) => ({
     filter: (s.filter === "expiring" || s.filter === "expired") ? s.filter : undefined,
   }),

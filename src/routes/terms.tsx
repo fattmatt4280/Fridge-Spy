@@ -5,8 +5,12 @@ export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
       { title: "Terms of Service — FridgeSpy" },
-      { name: "description", content: "The agreement between you and FridgeSpy when you use the app." },
+      { name: "description", content: "The agreement between you and FridgeSpy when you use the app: accounts, AI features, subscriptions, refunds, and acceptable use." },
+      { property: "og:title", content: "FridgeSpy Terms of Service" },
+      { property: "og:description", content: "The agreement between you and FridgeSpy when you use the app." },
+      { property: "og:url", content: "https://fridgespy.com/terms" },
     ],
+    links: [{ rel: "canonical", href: "https://fridgespy.com/terms" }],
   }),
   component: TermsPage,
 });

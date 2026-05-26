@@ -15,7 +15,16 @@ import { UpgradeModal } from "@/components/UpgradeModal";
 import { FREE_RECIPE_PER_DAY } from "@/lib/limits";
 
 export const Route = createFileRoute("/recipes")({
-  head: () => ({ meta: [{ title: "Tonight's Cook — FridgeSpy" }] }),
+  head: () => ({
+    meta: [
+      { title: "Tonight's Cook — FridgeSpy" },
+      { name: "description", content: "Get personalized recipe ideas built from the ingredients already in your kitchen. FridgeSpy turns what you have into dinner tonight." },
+      { property: "og:title", content: "Tonight's Cook — Recipes from your fridge" },
+      { property: "og:description", content: "Personalized recipes built from the ingredients already in your kitchen." },
+      { property: "og:url", content: "https://fridgespy.com/recipes" },
+    ],
+    links: [{ rel: "canonical", href: "https://fridgespy.com/recipes" }],
+  }),
   validateSearch: (s: Record<string, unknown>) => ({
     focus: typeof s.focus === "string" ? s.focus : undefined,
   }),

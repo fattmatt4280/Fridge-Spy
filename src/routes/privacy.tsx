@@ -5,8 +5,12 @@ export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
       { title: "Privacy Policy — FridgeSpy" },
-      { name: "description", content: "How FridgeSpy collects, uses, and protects your personal data." },
+      { name: "description", content: "How FridgeSpy collects, uses, and protects your personal data, including inventory photos, account details, and payment information." },
+      { property: "og:title", content: "FridgeSpy Privacy Policy" },
+      { property: "og:description", content: "How FridgeSpy collects, uses, and protects your personal data." },
+      { property: "og:url", content: "https://fridgespy.com/privacy" },
     ],
+    links: [{ rel: "canonical", href: "https://fridgespy.com/privacy" }],
   }),
   component: PrivacyPage,
 });

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ShoppingRouteImport } from './routes/shopping'
 import { Route as ScanReceiptRouteImport } from './routes/scan-receipt'
 import { Route as ScanFridgeRouteImport } from './routes/scan-fridge'
@@ -28,6 +29,11 @@ import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/publi
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShoppingRoute = ShoppingRouteImport.update({
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/scan-fridge': typeof ScanFridgeRoute
   '/scan-receipt': typeof ScanReceiptRoute
   '/shopping': typeof ShoppingRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/item/$id': typeof ItemIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -132,6 +139,7 @@ export interface FileRoutesByTo {
   '/scan-fridge': typeof ScanFridgeRoute
   '/scan-receipt': typeof ScanReceiptRoute
   '/shopping': typeof ShoppingRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/item/$id': typeof ItemIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -150,6 +158,7 @@ export interface FileRoutesById {
   '/scan-fridge': typeof ScanFridgeRoute
   '/scan-receipt': typeof ScanReceiptRoute
   '/shopping': typeof ShoppingRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/item/$id': typeof ItemIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/scan-fridge'
     | '/scan-receipt'
     | '/shopping'
+    | '/sitemap.xml'
     | '/terms'
     | '/item/$id'
     | '/api/public/payments/webhook'
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
     | '/scan-fridge'
     | '/scan-receipt'
     | '/shopping'
+    | '/sitemap.xml'
     | '/terms'
     | '/item/$id'
     | '/api/public/payments/webhook'
@@ -203,6 +214,7 @@ export interface FileRouteTypes {
     | '/scan-fridge'
     | '/scan-receipt'
     | '/shopping'
+    | '/sitemap.xml'
     | '/terms'
     | '/item/$id'
     | '/api/public/payments/webhook'
@@ -221,6 +233,7 @@ export interface RootRouteChildren {
   ScanFridgeRoute: typeof ScanFridgeRoute
   ScanReceiptRoute: typeof ScanReceiptRoute
   ShoppingRoute: typeof ShoppingRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   ItemIdRoute: typeof ItemIdRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
@@ -233,6 +246,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shopping': {
@@ -349,6 +369,7 @@ const rootRouteChildren: RootRouteChildren = {
   ScanFridgeRoute: ScanFridgeRoute,
   ScanReceiptRoute: ScanReceiptRoute,
   ShoppingRoute: ShoppingRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   ItemIdRoute: ItemIdRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,

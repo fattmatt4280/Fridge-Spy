@@ -15,7 +15,16 @@ import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { CuisinePicker, DietaryEditor, EMPTY_PROFILE, type CookingProfile } from "@/components/CookingProfileEditor";
 
 export const Route = createFileRoute("/account")({
-  head: () => ({ meta: [{ title: "FridgeSpy — Account" }] }),
+  head: () => ({
+    meta: [
+      { title: "Account — FridgeSpy" },
+      { name: "description", content: "Manage your FridgeSpy account, cooking preferences, dietary restrictions, and subscription." },
+      { property: "og:title", content: "Your FridgeSpy Account" },
+      { property: "og:description", content: "Manage your FridgeSpy account, cooking preferences, and subscription." },
+      { property: "og:url", content: "https://fridgespy.com/account" },
+    ],
+    links: [{ rel: "canonical", href: "https://fridgespy.com/account" }],
+  }),
   component: AccountPage,
 });
 

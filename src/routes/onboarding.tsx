@@ -8,7 +8,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/onboarding")({
-  head: () => ({ meta: [{ title: "Welcome to FridgeSpy" }] }),
+  head: () => ({
+    meta: [
+      { title: "Welcome to FridgeSpy" },
+      { name: "description", content: "Set up your FridgeSpy account in a minute. Tell us what you cook, what to avoid, and we'll personalize recipes and alerts to you." },
+      { property: "og:title", content: "Get started with FridgeSpy" },
+      { property: "og:description", content: "Set up your kitchen and cooking preferences in a minute." },
+      { property: "og:url", content: "https://fridgespy.com/onboarding" },
+    ],
+    links: [{ rel: "canonical", href: "https://fridgespy.com/onboarding" }],
+  }),
   component: Onboarding,
 });
 

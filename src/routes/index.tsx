@@ -10,7 +10,37 @@ import { HomeScoreCard } from "@/components/HomeScoreCard";
 import { getCookedStreak } from "@/lib/cooking.functions";
 
 export const Route = createFileRoute("/")({
-  head: () => ({ meta: [{ title: "FridgeSpy — The Spy Report" }] }),
+  head: () => ({
+    meta: [
+      { title: "FridgeSpy — Know what's in your kitchen. Always." },
+      { name: "description", content: "FridgeSpy tracks every item in your fridge and pantry with AI receipt and fridge scanning, so you cook from what you have and stop wasting food." },
+      { property: "og:title", content: "FridgeSpy — Your kitchen, organized" },
+      { property: "og:description", content: "Track every item in your kitchen with AI scanning. Stop wasting food and cook from what you already have." },
+      { property: "og:url", content: "https://fridgespy.com/" },
+    ],
+    links: [{ rel: "canonical", href: "https://fridgespy.com/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "FridgeSpy",
+          url: "https://fridgespy.com/",
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "FridgeSpy",
+          url: "https://fridgespy.com/",
+          logo: "https://fridgespy.com/favicon.ico",
+        }),
+      },
+    ],
+  }),
   component: HomePage,
 });
 

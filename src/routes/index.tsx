@@ -16,6 +16,16 @@ export const Route = createFileRoute("/")({
 
 function HomePage() {
   const { user } = useAuth();
+  const streakFn = useServerFn(getCookedStreak);
+
+  const { data: streakData } = useQuery({
+    queryKey: ["cooked-streak", user?.id],
+    enabled: !!user,
+    queryFn: () => streakFn(),
+  });
+  const streak = streakData?.streak ?? 0;
+
+
 
 
 

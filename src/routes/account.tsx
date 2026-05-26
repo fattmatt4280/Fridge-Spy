@@ -276,3 +276,89 @@ function AccountPage() {
     </div>
   );
 }
+
+function CookingProfileSection({ userId }: { userId: string | undefined }) {
+  const { data, refetch } = useQuery({
+    queryKey: ["cooking-profile", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("cuisines_liked, cuisines_learning, dietary_restrictions, avoid_ingredients, skill_level, typical_cook_time_min")
+        .eq("user_id", userId!)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  const [profile, setProfile] = useState<CookingProfile>(EMPTY_PROFILE);
+  const [dirty, setDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (data) {
+      setProfile({
+        cuisines_liked: data.cuisines_liked ?? [],
+        cuisines_learning: data.cuisines_learning ?? [],
+        dietary_restrictions: data.dietary_restrictions ?? [],
+        avoid_ingredients: data.avoid_ingredients ?? [],
+        skill_level: (data.skill_level as any) ?? "comfortable",
+        typical_cook_time_min: data.typical_cook_time_min ?? 30,
+      });
+      setDirty(false);
+    }
+  }, [data]);
+
+  function update(next: CookingProfile) {
+    setProfile(next);
+    setDirty(true);
+  }
+
+  async function save() {
+    if (!userId) return;
+    setSaving(true);
+    const { error } = await supabase.from("profiles").update(profile).eq("user_id", userId);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Cooking profile saved");
+    setDirty(false);
+    refetch();
+  }
+
+  if (!userId) return null;
+
+  return (
+    <section className="glass-card mt-4 p-5">
+      <div className="flex items-center gap-2">
+        <ChefHat size={16} className="text-primary" />
+        <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Cooking profile</div>
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">
+        FridgeSpy personalizes recipes based on this. Update anytime.
+      </p>
+
+      <div className="mt-5 space-y-6">
+        <CuisinePicker
+          title="Cuisines I love"
+          value={profile.cuisines_liked}
+          onChange={v => update({ ...profile, cuisines_liked: v })}
+        />
+        <CuisinePicker
+          title="Want to learn"
+          subtitle="We'll sneak in a new dish from these now and then."
+          value={profile.cuisines_learning}
+          onChange={v => update({ ...profile, cuisines_learning: v })}
+        />
+        <DietaryEditor profile={profile} onChange={update} />
+      </div>
+
+      <button
+        onClick={save}
+        disabled={!dirty || saving}
+        className="mt-5 w-full rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground disabled:opacity-50"
+      >
+        {saving ? "Saving…" : dirty ? "Save changes" : "Saved"}
+      </button>
+    </section>
+  );
+}

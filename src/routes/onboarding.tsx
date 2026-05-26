@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { Logo } from "@/components/ui-fs/Logo";
 import { Camera, Receipt, Barcode, ArrowRight } from "lucide-react";
 import { ScoreRing } from "@/components/ScoreRing";
+import { CuisinePicker, DietaryEditor, EMPTY_PROFILE, type CookingProfile } from "@/components/CookingProfileEditor";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({ meta: [{ title: "Welcome to FridgeSpy" }] }),
@@ -10,11 +13,15 @@ export const Route = createFileRoute("/onboarding")({
 });
 
 const ONBOARD_KEY = "fridgespy.onboarded";
+const PREFS_KEY = "fridgespy.pending_prefs";
+const SLIDE_COUNT = 5;
 
 function Onboarding() {
   const [i, setI] = useState(0);
   const [ringScore, setRingScore] = useState(0);
+  const [profile, setProfile] = useState<CookingProfile>(EMPTY_PROFILE);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (typeof window !== "undefined" && localStorage.getItem(ONBOARD_KEY)) {
@@ -23,7 +30,7 @@ function Onboarding() {
   }, [navigate]);
 
   useEffect(() => {
-    if (i === 2) {
+    if (i === SLIDE_COUNT - 1) {
       const t = setTimeout(() => setRingScore(95), 200);
       return () => clearTimeout(t);
     } else {
@@ -31,7 +38,20 @@ function Onboarding() {
     }
   }, [i]);
 
-  const finish = (dest: "/login" | "/") => {
+  async function savePrefs() {
+    // If user already signed in (rare on onboarding), persist now. Otherwise
+    // stash for login.tsx / post-signup to pick up.
+    try {
+      if (user) {
+        await supabase.from("profiles").update(profile).eq("user_id", user.id);
+      } else {
+        localStorage.setItem(PREFS_KEY, JSON.stringify(profile));
+      }
+    } catch {}
+  }
+
+  const finish = async (dest: "/login" | "/") => {
+    await savePrefs();
     try {
       localStorage.setItem(ONBOARD_KEY, "1");
       if (dest === "/") localStorage.setItem("fridgespy.guest", "1");
@@ -39,11 +59,10 @@ function Onboarding() {
     navigate({ to: dest, replace: true });
   };
 
-  const isLast = i === 2;
+  const isLast = i === SLIDE_COUNT - 1;
 
   return (
     <div className="relative flex min-h-screen flex-col px-6 pb-10 pt-[max(env(safe-area-inset-top),3rem)]">
-      {/* Skip top-right on slides 1 & 2 */}
       {!isLast && (
         <button
           onClick={() => finish("/login")}
@@ -58,11 +77,13 @@ function Onboarding() {
       <div className="flex flex-1 flex-col items-center justify-center text-center fade-in" key={i}>
         {i === 0 && <Slide1 />}
         {i === 1 && <Slide2 />}
-        {i === 2 && <Slide3 score={ringScore} />}
+        {i === 2 && <SlideCuisines profile={profile} setProfile={setProfile} />}
+        {i === 3 && <SlideDietary profile={profile} setProfile={setProfile} />}
+        {i === 4 && <Slide3 score={ringScore} />}
       </div>
 
       <div className="mb-6 flex justify-center gap-1.5">
-        {[0,1,2].map(idx => (
+        {Array.from({ length: SLIDE_COUNT }).map((_, idx) => (
           <span key={idx} className={`h-1.5 rounded-full transition-all ${idx === i ? "w-6 bg-primary" : "w-1.5 bg-border"}`} />
         ))}
       </div>
@@ -141,6 +162,39 @@ function Slide2() {
         ))}
       </div>
     </>
+  );
+}
+
+function SlideCuisines({ profile, setProfile }: { profile: CookingProfile; setProfile: (p: CookingProfile) => void }) {
+  return (
+    <div className="w-full max-w-sm text-left">
+      <div className="mb-1 text-center text-xs font-bold uppercase tracking-widest text-primary">Tell us what you cook</div>
+      <h1 className="mb-5 text-center text-2xl font-extrabold tracking-tight">What do you love to cook?</h1>
+      <div className="space-y-6">
+        <CuisinePicker
+          title="Cuisines I love"
+          subtitle="Pick any you reach for often."
+          value={profile.cuisines_liked}
+          onChange={v => setProfile({ ...profile, cuisines_liked: v })}
+        />
+        <CuisinePicker
+          title="Want to learn"
+          subtitle="We'll sneak in a new dish from these now and then."
+          value={profile.cuisines_learning}
+          onChange={v => setProfile({ ...profile, cuisines_learning: v })}
+        />
+      </div>
+    </div>
+  );
+}
+
+function SlideDietary({ profile, setProfile }: { profile: CookingProfile; setProfile: (p: CookingProfile) => void }) {
+  return (
+    <div className="w-full max-w-sm text-left">
+      <div className="mb-1 text-center text-xs font-bold uppercase tracking-widest text-primary">A few specifics</div>
+      <h1 className="mb-5 text-center text-2xl font-extrabold tracking-tight">Anything to avoid?</h1>
+      <DietaryEditor profile={profile} onChange={setProfile} />
+    </div>
   );
 }
 

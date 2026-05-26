@@ -85,9 +85,20 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       router.invalidate();
       queryClient.invalidateQueries();
+      // Flush onboarding cooking prefs into the user's profile once they sign in.
+      if (session?.user && typeof window !== "undefined") {
+        const raw = localStorage.getItem("fridgespy.pending_prefs");
+        if (raw) {
+          try {
+            const prefs = JSON.parse(raw);
+            supabase.from("profiles").update(prefs).eq("user_id", session.user.id)
+              .then(() => localStorage.removeItem("fridgespy.pending_prefs"));
+          } catch { localStorage.removeItem("fridgespy.pending_prefs"); }
+        }
+      }
     });
     return () => subscription.unsubscribe();
   }, [router, queryClient]);

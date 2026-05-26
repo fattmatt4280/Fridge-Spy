@@ -9,7 +9,16 @@ import { toast } from "sonner";
 import { EmptyState } from "@/components/EmptyState";
 
 export const Route = createFileRoute("/shopping")({
-  head: () => ({ meta: [{ title: "Shopping List — FridgeSpy" }] }),
+  head: () => ({
+    meta: [
+      { title: "Shopping List — FridgeSpy" },
+      { name: "description", content: "Build a smart shopping list from what's running low in your kitchen. FridgeSpy syncs missing recipe ingredients straight to your list." },
+      { property: "og:title", content: "Shopping List — FridgeSpy" },
+      { property: "og:description", content: "A smart shopping list built from what's running low in your kitchen." },
+      { property: "og:url", content: "https://fridgespy.com/shopping" },
+    ],
+    links: [{ rel: "canonical", href: "https://fridgespy.com/shopping" }],
+  }),
   component: ShoppingPage,
 });
 

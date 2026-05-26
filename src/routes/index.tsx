@@ -1,11 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Bell, Camera, Receipt, Plus, ChefHat, Sparkles, UserCircle2 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { Bell, Camera, Receipt, Plus, ChefHat, Sparkles, UserCircle2, Flame } from "lucide-react";
 import { Logo } from "@/components/ui-fs/Logo";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { daysUntil, expiryLabel, expiryStatus, categoryEmoji } from "@/lib/expiry";
 import { HomeScoreCard } from "@/components/HomeScoreCard";
+import { getCookedStreak } from "@/lib/cooking.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [{ title: "FridgeSpy — The Spy Report" }] }),
@@ -14,6 +16,16 @@ export const Route = createFileRoute("/")({
 
 function HomePage() {
   const { user } = useAuth();
+  const streakFn = useServerFn(getCookedStreak);
+
+  const { data: streakData } = useQuery({
+    queryKey: ["cooked-streak", user?.id],
+    enabled: !!user,
+    queryFn: () => streakFn(),
+  });
+  const streak = streakData?.streak ?? 0;
+
+
 
 
 
@@ -75,8 +87,15 @@ function HomePage() {
       </header>
 
       {user && (
-        <div className="text-sm text-muted-foreground">
-          {greeting}{firstName ? `, ${firstName}` : ""}.
+        <div className="flex items-center justify-between gap-2">
+          <div className="text-sm text-muted-foreground">
+            {greeting}{firstName ? `, ${firstName}` : ""}.
+          </div>
+          {streak > 0 && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2.5 py-1 text-xs font-bold text-warning">
+              <Flame size={12} /> {streak}-day cook streak
+            </span>
+          )}
         </div>
       )}
 

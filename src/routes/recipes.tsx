@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Sparkles, Clock, Bookmark, BookmarkCheck, Loader2, ShoppingCart } from "lucide-react";
+import { Sparkles, Clock, Bookmark, BookmarkCheck, Loader2, ShoppingCart, ChefHat, GraduationCap, Check, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { generateRecipes } from "@/lib/claude.functions";
+import { markRecipeCooked } from "@/lib/cooking.functions";
 import { daysUntil } from "@/lib/expiry";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/EmptyState";
@@ -15,11 +16,15 @@ import { FREE_RECIPE_PER_DAY } from "@/lib/limits";
 
 export const Route = createFileRoute("/recipes")({
   head: () => ({ meta: [{ title: "Tonight's Cook — FridgeSpy" }] }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    focus: typeof s.focus === "string" ? s.focus : undefined,
+  }),
   component: RecipesPage,
 });
 
 type GeneratedRecipe = {
   title: string;
+  cuisine?: string;
   prep_time: string;
   difficulty: string;
   uses_expiring?: string[];
@@ -28,16 +33,20 @@ type GeneratedRecipe = {
   instructions: string[];
   missing_ingredients: string[];
   why_make_this?: string;
+  is_learning_pick?: boolean;
 };
 
 function RecipesPage() {
   const { user } = useAuth();
+  const { focus } = Route.useSearch();
   const qc = useQueryClient();
   const genFn = useServerFn(generateRecipes);
+  const cookedFn = useServerFn(markRecipeCooked);
   const { isPremium, recipesLeft, recipesToday } = usePremium();
   const gate = useUpgradeGate();
   const [recipes, setRecipes] = useState<GeneratedRecipe[] | null>(null);
   const [expanded, setExpanded] = useState<number | null>(null);
+  const [cookSheet, setCookSheet] = useState<GeneratedRecipe | null>(null);
 
   const { data: items = [] } = useQuery({
     queryKey: ["items", user?.id],
@@ -59,13 +68,16 @@ function RecipesPage() {
       }
       const expiring: { name: string }[] = [];
       const other: { name: string }[] = [];
+      // If a focus item is passed, force it into the expiring bucket so the
+      // model prioritizes it.
+      const focusLower = focus?.toLowerCase();
       for (const i of items) {
         const d = daysUntil(i.expiry_date);
-        if (d !== null && d <= 7) expiring.push({ name: i.name });
+        const isFocus = focusLower && i.name.toLowerCase() === focusLower;
+        if (isFocus || (d !== null && d <= 7)) expiring.push({ name: i.name });
         else other.push({ name: i.name });
       }
       const res = await genFn({ data: { expiring, other } });
-      // Log usage for daily quota tracking.
       await supabase.from("activity_log").insert({
         user_id: user!.id, kind: "recipe-gen", message: "Generated recipes",
       });
@@ -78,6 +90,14 @@ function RecipesPage() {
     },
     onError: (e: any) => { if (e?.message !== "limit") toast.error(e.message); },
   });
+
+  // Auto-trigger when arriving with ?focus=
+  useEffect(() => {
+    if (focus && items.length > 0 && !recipes && !generate.isPending) {
+      generate.mutate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focus, items.length]);
 
   const save = useMutation({
     mutationFn: async (r: GeneratedRecipe) => {
@@ -122,13 +142,18 @@ function RecipesPage() {
         />
       ) : (
         <>
+          {focus && (
+            <div className="mb-3 rounded-xl border border-primary/30 bg-primary/10 px-4 py-2 text-xs text-primary">
+              Focused on: <strong>{focus}</strong>
+            </div>
+          )}
           <button onClick={() => generate.mutate()} disabled={generate.isPending}
             className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-base font-bold text-primary-foreground shadow-lg shadow-primary/30 disabled:opacity-60">
             {generate.isPending ? <><Loader2 className="animate-spin" size={18}/> FridgeSpy is thinking...</> : <><Sparkles size={18}/> Use What I Have</>}
           </button>
           <p className="mt-2 text-center text-xs text-muted-foreground">
             {isPremium
-              ? "Unlimited Pro generations. 3 recipes from items expiring soonest."
+              ? "Unlimited Pro generations. Personalized to your taste."
               : `${Math.max(0, FREE_RECIPE_PER_DAY - recipesToday)} of ${FREE_RECIPE_PER_DAY} free generations left today.`}
           </p>
         </>
@@ -156,10 +181,18 @@ function RecipesPage() {
                 <button onClick={() => setExpanded(expanded===idx?null:idx)} className="w-full p-4 text-left">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="text-base font-bold">{r.title}</div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-base font-bold">{r.title}</div>
+                        {r.is_learning_pick && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-warning/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-warning">
+                            <GraduationCap size={10}/> Try new
+                          </span>
+                        )}
+                      </div>
                       <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                         <span className="inline-flex items-center gap-1"><Clock size={12}/> {r.prep_time}</span>
                         <span className="rounded-full bg-background/50 px-2 py-0.5">{r.difficulty}</span>
+                        {r.cuisine && <span className="rounded-full bg-background/50 px-2 py-0.5">{r.cuisine}</span>}
                         <span className="rounded-full bg-primary/15 px-2 py-0.5 text-primary">Uses {uses.length} of yours</span>
                       </div>
                       {r.why_make_this && (
@@ -192,6 +225,13 @@ function RecipesPage() {
                     )}
                     <H className="mt-3">Steps</H>
                     <ol className="mt-1 list-decimal space-y-1 pl-5 text-sm">{r.instructions.map((x,i)=><li key={i}>{x}</li>)}</ol>
+
+                    <button
+                      onClick={() => setCookSheet(r)}
+                      className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/30"
+                    >
+                      <ChefHat size={16}/> I cooked this
+                    </button>
                   </div>
                 )}
               </article>
@@ -218,10 +258,136 @@ function RecipesPage() {
       )}
 
       <UpgradeModal reason={gate.reason} onClose={gate.close} />
+
+      {cookSheet && (
+        <CookedSheet
+          recipe={cookSheet}
+          inventory={items}
+          onClose={() => setCookSheet(null)}
+          onConfirm={async (used) => {
+            try {
+              await cookedFn({ data: { recipeTitle: cookSheet.title, used } });
+              toast.success(`Nice! ${cookSheet.title} logged.`);
+              qc.invalidateQueries({ queryKey: ["items"] });
+              qc.invalidateQueries({ queryKey: ["item-count"] });
+              qc.invalidateQueries({ queryKey: ["activity"] });
+              qc.invalidateQueries({ queryKey: ["cooked-streak"] });
+              setCookSheet(null);
+            } catch (e: any) {
+              toast.error(e?.message || "Couldn't log cook");
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
 
 function H({ children, className="" }: { children: React.ReactNode; className?: string }) {
   return <div className={`text-xs font-bold uppercase tracking-wider text-muted-foreground ${className}`}>{children}</div>;
+}
+
+type Item = { id: string; name: string; quantity: number; unit?: string | null };
+
+function CookedSheet({
+  recipe, inventory, onClose, onConfirm,
+}: {
+  recipe: GeneratedRecipe;
+  inventory: Item[];
+  onClose: () => void;
+  onConfirm: (used: { name: string; quantity: number }[]) => void | Promise<void>;
+}) {
+  const names = recipe.uses_expiring ?? recipe.uses_items ?? [];
+  type Row = { name: string; quantity: number; unit: string; match: Item | null; checked: boolean };
+
+  const initial: Row[] = names.map(n => {
+    const match = inventory.find(i => i.name.toLowerCase() === n.toLowerCase()) ?? null;
+    return {
+      name: n,
+      quantity: match ? 1 : 0,
+      unit: match?.unit ?? "unit",
+      match,
+      checked: !!match,
+    };
+  });
+
+  const [rows, setRows] = useState<Row[]>(initial);
+  const [busy, setBusy] = useState(false);
+
+  function update(idx: number, patch: Partial<Row>) {
+    setRows(rs => rs.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
+  }
+
+  async function submit() {
+    setBusy(true);
+    const used = rows
+      .filter(r => r.checked && r.match && r.quantity > 0)
+      .map(r => ({ name: r.match!.name, quantity: r.quantity }));
+    await onConfirm(used);
+    setBusy(false);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4">
+      <div className="w-full max-w-md rounded-t-3xl border border-border bg-surface p-5 pb-[max(env(safe-area-inset-bottom),1.25rem)] sm:rounded-3xl">
+        <div className="flex items-start justify-between">
+          <div>
+            <div className="text-xs font-bold uppercase tracking-widest text-primary">Mark as cooked</div>
+            <div className="mt-1 text-lg font-extrabold">{recipe.title}</div>
+          </div>
+          <button onClick={onClose} className="rounded-full p-2 text-muted-foreground hover:bg-background/40"><X size={18}/></button>
+        </div>
+
+        <p className="mt-2 text-xs text-muted-foreground">
+          Confirm what you actually used — we'll update your inventory.
+        </p>
+
+        <div className="mt-4 max-h-[55vh] space-y-2 overflow-y-auto">
+          {rows.length === 0 && (
+            <div className="rounded-xl border border-border bg-background/40 p-4 text-sm text-muted-foreground">
+              No matching items listed. We'll still log this cook.
+            </div>
+          )}
+          {rows.map((r, idx) => (
+            <div key={idx} className={`flex items-center gap-3 rounded-xl border p-3 ${r.match ? "border-border bg-background/40" : "border-dashed border-border bg-background/20 opacity-60"}`}>
+              <button
+                onClick={() => r.match && update(idx, { checked: !r.checked })}
+                disabled={!r.match}
+                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition ${r.checked ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background"}`}
+              >
+                {r.checked && <Check size={14}/>}
+              </button>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-semibold">{r.name}</div>
+                <div className="text-[11px] text-muted-foreground">
+                  {r.match ? `In stock: ${r.match.quantity} ${r.match.unit ?? ""}` : "Not in your kitchen"}
+                </div>
+              </div>
+              {r.match && (
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    step="0.5"
+                    min={0}
+                    value={r.quantity}
+                    onChange={e => update(idx, { quantity: Math.max(0, Number(e.target.value)) })}
+                    className="w-16 rounded-md border border-border bg-background px-2 py-1 text-right text-sm outline-none focus:border-primary"
+                  />
+                  <span className="text-xs text-muted-foreground">{r.unit}</span>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-5 flex gap-2">
+          <button onClick={onClose} disabled={busy} className="flex-1 rounded-xl border border-border bg-background/40 py-3 text-sm font-semibold">Cancel</button>
+          <button onClick={submit} disabled={busy} className="flex-[2] rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground disabled:opacity-60">
+            {busy ? "Logging…" : "Confirm & update inventory"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }

@@ -1,9 +1,10 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Bell, LogOut } from "lucide-react";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { ArrowLeft, Bell, LogOut, ChefHat } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { daysUntil, expiryLabel, categoryEmoji } from "@/lib/expiry";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/alerts")({
@@ -24,6 +25,16 @@ function AlertsPage() {
     enabled: !!user,
     queryFn: async () => (await supabase.from("activity_log").select("*").order("created_at",{ascending:false}).limit(30)).data ?? [],
   });
+
+  const { data: items = [] } = useQuery({
+    queryKey: ["items", user?.id],
+    enabled: !!user,
+    queryFn: async () => (await supabase.from("items").select("*").order("expiry_date", { ascending: true, nullsFirst: false })).data ?? [],
+  });
+  const expiringSoon = items.filter(i => {
+    const d = daysUntil(i.expiry_date);
+    return d !== null && d <= 5;
+  }).slice(0, 8);
 
   async function requestPush() {
     if (!("Notification" in window)) return toast.error("Notifications unsupported");
@@ -72,6 +83,30 @@ function AlertsPage() {
         <div className="mt-2 text-2xl font-extrabold text-primary">You saved 0 items from expiring</div>
         <div className="mt-1 text-xs text-muted-foreground">Keep using FridgeSpy to build your streak.</div>
       </div>
+
+      {expiringSoon.length > 0 && (
+        <>
+          <h2 className="mb-2 mt-6 text-xs font-bold uppercase tracking-widest text-muted-foreground">Use these soon</h2>
+          <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface">
+            {expiringSoon.map(item => (
+              <li key={item.id} className="flex items-center gap-3 px-4 py-3">
+                <span className="text-xl">{item.emoji || categoryEmoji(item.name, item.category)}</span>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-semibold">{item.name}</div>
+                  <div className="text-xs text-muted-foreground">{expiryLabel(item.expiry_date)}</div>
+                </div>
+                <Link
+                  to="/recipes"
+                  search={{ focus: item.name }}
+                  className="inline-flex items-center gap-1 rounded-lg bg-primary/15 px-2.5 py-1.5 text-xs font-bold text-primary hover:bg-primary/25"
+                >
+                  <ChefHat size={12}/> Cook this
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
 
       <h2 className="mb-2 mt-6 text-xs font-bold uppercase tracking-widest text-muted-foreground">History</h2>
       {activity.length === 0 ? (

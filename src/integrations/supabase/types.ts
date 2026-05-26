@@ -97,38 +97,56 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avoid_ingredients: string[]
           created_at: string
+          cuisines_learning: string[]
+          cuisines_liked: string[]
+          dietary_restrictions: string[]
           display_name: string | null
           fridgespy_score: number
           id: string
           items_saved_this_week: number
           onboarded: boolean
           premium_user: boolean
+          skill_level: string
           streak_days: number
+          typical_cook_time_min: number
           updated_at: string
           user_id: string
         }
         Insert: {
+          avoid_ingredients?: string[]
           created_at?: string
+          cuisines_learning?: string[]
+          cuisines_liked?: string[]
+          dietary_restrictions?: string[]
           display_name?: string | null
           fridgespy_score?: number
           id?: string
           items_saved_this_week?: number
           onboarded?: boolean
           premium_user?: boolean
+          skill_level?: string
           streak_days?: number
+          typical_cook_time_min?: number
           updated_at?: string
           user_id: string
         }
         Update: {
+          avoid_ingredients?: string[]
           created_at?: string
+          cuisines_learning?: string[]
+          cuisines_liked?: string[]
+          dietary_restrictions?: string[]
           display_name?: string | null
           fridgespy_score?: number
           id?: string
           items_saved_this_week?: number
           onboarded?: boolean
           premium_user?: boolean
+          skill_level?: string
           streak_days?: number
+          typical_cook_time_min?: number
           updated_at?: string
           user_id?: string
         }

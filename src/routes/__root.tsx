@@ -12,6 +12,7 @@ import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);

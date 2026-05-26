@@ -1,0 +1,10 @@
+# FridgeSpy
+
+> FridgeSpy tracks every item in your fridge and pantry with AI receipt and fridge scanning so you cook from what you have and stop wasting food.
+
+## Pages
+
+- [Home](/): Overview of FridgeSpy — what's in your kitchen, expiring soon, recent activity.
+- [Sign in](/login): Create a FridgeSpy account or sign in.
+- [Privacy Policy](/privacy): How FridgeSpy collects, uses, and protects your data.
+- [Terms of Service](/terms): The agreement between you and FridgeSpy.

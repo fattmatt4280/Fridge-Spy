@@ -99,18 +99,23 @@ export const scanExpiryLabel = createServerFn({ method: "POST" })
       return { error: "upgrade_required" as const };
     }
 
-    // 2. Quota gate
+    // 2. Atomic quota reserve — increments only if under cap, no read/write race.
     const period = await resolvePeriod(userId);
     const row = await getOrCreatePeriodRow(userId, period);
     const total = FREE_SCAN_QUOTA + (row.bonus ?? 0);
-    if (row.used >= total) {
+    const { data: reserveRows, error: reserveErr } = await (supabaseAdmin as any)
+      .rpc("increment_scan_usage", { p_row_id: row.id, p_max: total });
+    if (reserveErr) throw new Error(reserveErr.message);
+    const reserve = Array.isArray(reserveRows) ? reserveRows[0] : reserveRows;
+    if (!reserve?.accepted) {
       return {
         error: "quota_exceeded" as const,
-        used: row.used,
+        used: reserve?.new_used ?? row.used,
         included: FREE_SCAN_QUOTA,
         bonus: row.bonus ?? 0,
       };
     }
+    const newUsed: number = reserve.new_used;
 
     // 3. Call Gemini Flash via Lovable AI Gateway
     const apiKey = process.env.LOVABLE_API_KEY;

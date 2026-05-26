@@ -12,7 +12,16 @@ import { usePremium, useUpgradeGate } from "@/hooks/usePremium";
 import { UpgradeModal } from "@/components/UpgradeModal";
 
 export const Route = createFileRoute("/scan-receipt")({
-  head: () => ({ meta: [{ title: "Snap Receipt — FridgeSpy" }] }),
+  head: () => ({
+    meta: [
+      { title: "Snap a receipt — FridgeSpy" },
+      { name: "description", content: "Photograph any grocery receipt and FridgeSpy will add every item to your inventory in seconds, with auto-categorization and expiry estimates." },
+      { property: "og:title", content: "Snap a grocery receipt — FridgeSpy" },
+      { property: "og:description", content: "Photograph a receipt and add every grocery item to your inventory in seconds." },
+      { property: "og:url", content: "https://fridgespy.com/scan-receipt" },
+    ],
+    links: [{ rel: "canonical", href: "https://fridgespy.com/scan-receipt" }],
+  }),
   component: ScanReceiptPage,
 });
 

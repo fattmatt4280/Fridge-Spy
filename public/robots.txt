@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://fridgespy.com/sitemap.xml

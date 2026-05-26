@@ -26,6 +26,16 @@ function AlertsPage() {
     queryFn: async () => (await supabase.from("activity_log").select("*").order("created_at",{ascending:false}).limit(30)).data ?? [],
   });
 
+  const { data: items = [] } = useQuery({
+    queryKey: ["items", user?.id],
+    enabled: !!user,
+    queryFn: async () => (await supabase.from("items").select("*").order("expiry_date", { ascending: true, nullsFirst: false })).data ?? [],
+  });
+  const expiringSoon = items.filter(i => {
+    const d = daysUntil(i.expiry_date);
+    return d !== null && d <= 5;
+  }).slice(0, 8);
+
   async function requestPush() {
     if (!("Notification" in window)) return toast.error("Notifications unsupported");
     const res = await Notification.requestPermission();

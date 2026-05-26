@@ -159,7 +159,7 @@ function ScanFridgePage() {
       {preview && (
         <div className="mt-3">
           <div className="relative overflow-hidden rounded-2xl border border-border bg-surface">
-            <img src={preview} alt="fridge" className="max-h-72 w-full object-cover" />
+            <img src={preview} alt="Fridge interior being scanned" className="max-h-72 w-full object-cover" />
             {scan.isPending && (
               <div className="scanning-shimmer absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm">
                 <div className="flex items-center gap-2 rounded-full bg-surface px-4 py-2 text-sm font-semibold">

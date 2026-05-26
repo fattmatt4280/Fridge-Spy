@@ -87,8 +87,15 @@ function HomePage() {
       </header>
 
       {user && (
-        <div className="text-sm text-muted-foreground">
-          {greeting}{firstName ? `, ${firstName}` : ""}.
+        <div className="flex items-center justify-between gap-2">
+          <div className="text-sm text-muted-foreground">
+            {greeting}{firstName ? `, ${firstName}` : ""}.
+          </div>
+          {streak > 0 && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2.5 py-1 text-xs font-bold text-warning">
+              <Flame size={12} /> {streak}-day cook streak
+            </span>
+          )}
         </div>
       )}
 

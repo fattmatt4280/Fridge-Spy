@@ -8,7 +8,16 @@ import { daysUntil, expiryLabel, categoryEmoji } from "@/lib/expiry";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/alerts")({
-  head: () => ({ meta: [{ title: "Alerts — FridgeSpy" }] }),
+  head: () => ({
+    meta: [
+      { title: "Alerts — FridgeSpy" },
+      { name: "description", content: "Stay on top of expiring food with FridgeSpy alerts. Tweak notification preferences and review your recent activity history." },
+      { property: "og:title", content: "Expiry Alerts — FridgeSpy" },
+      { property: "og:description", content: "Stay on top of expiring food and review your recent kitchen activity." },
+      { property: "og:url", content: "https://fridgespy.com/alerts" },
+    ],
+    links: [{ rel: "canonical", href: "https://fridgespy.com/alerts" }],
+  }),
   component: AlertsPage,
 });
 

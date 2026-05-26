@@ -51,6 +51,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#0d1117" },
+      { name: "google-site-verification", content: "oS_ZVuCIVDyEnihG2xi0AQmeAeMzb86j12PAzUXsbHk" },
       { title: "FridgeSpy — Know what's in your kitchen. Always." },
       { name: "description", content: "Track every item in your kitchen with AI receipt and fridge scanning. Stop wasting food, cook from what you have." },
       { property: "og:title", content: "FridgeSpy — Know what's in your kitchen. Always." },

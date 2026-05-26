@@ -205,6 +205,10 @@ function AccountPage() {
           )}
         </section>
 
+        <CookingProfileSection userId={user?.id} />
+
+
+
 
         <button
           onClick={signOut}

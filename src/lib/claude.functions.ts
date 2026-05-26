@@ -1,9 +1,20 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { FREE_RECIPE_PER_DAY } from "@/lib/limits";
 import { z } from "zod";
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const MODEL = "claude-sonnet-4-20250514";
+
+async function isPremium(userId: string): Promise<boolean> {
+  const { data } = await supabaseAdmin
+    .from("profiles")
+    .select("premium_user")
+    .eq("user_id", userId)
+    .maybeSingle();
+  return !!data?.premium_user;
+}
 
 async function callClaude(body: any): Promise<any> {
   const key = process.env.ANTHROPIC_API_KEY;

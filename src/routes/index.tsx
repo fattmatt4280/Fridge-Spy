@@ -1,11 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Bell, Camera, Receipt, Plus, ChefHat, Sparkles, UserCircle2 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { Bell, Camera, Receipt, Plus, ChefHat, Sparkles, UserCircle2, Flame } from "lucide-react";
 import { Logo } from "@/components/ui-fs/Logo";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { daysUntil, expiryLabel, expiryStatus, categoryEmoji } from "@/lib/expiry";
 import { HomeScoreCard } from "@/components/HomeScoreCard";
+import { getCookedStreak } from "@/lib/cooking.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [{ title: "FridgeSpy — The Spy Report" }] }),

@@ -12,7 +12,16 @@ import { UpgradeModal } from "@/components/UpgradeModal";
 import { ScanExpiryButton } from "@/components/ScanExpiryButton";
 
 export const Route = createFileRoute("/add")({
-  head: () => ({ meta: [{ title: "Add Item — FridgeSpy" }] }),
+  head: () => ({
+    meta: [
+      { title: "Add an Item — FridgeSpy" },
+      { name: "description", content: "Add a single grocery item to your FridgeSpy kitchen — name, quantity, location, and expiry date in a few taps." },
+      { property: "og:title", content: "Add an Item — FridgeSpy" },
+      { property: "og:description", content: "Add a single grocery item to your FridgeSpy kitchen." },
+      { property: "og:url", content: "https://fridgespy.com/add" },
+    ],
+    links: [{ rel: "canonical", href: "https://fridgespy.com/add" }],
+  }),
   component: AddPage,
 });
 

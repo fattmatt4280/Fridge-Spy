@@ -56,10 +56,10 @@ function LoginPage() {
     <div className="min-h-screen px-6 pt-[max(env(safe-area-inset-top),3rem)]">
       <div className="mx-auto max-w-sm">
         <div className="flex justify-center"><Logo size="lg" /></div>
+        <h1 className="mt-4 text-center text-2xl font-extrabold tracking-tight">Sign in to FridgeSpy</h1>
         <p className="mt-3 text-center text-sm text-muted-foreground">Know what's in your kitchen. Always.</p>
 
         <form onSubmit={onSubmit} className="mt-10 space-y-3">
-          {mode === "signup" && (
             <Field label="Name">
               <input value={name} onChange={e => setName(e.target.value)} placeholder="Your name"
                 className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-base outline-none placeholder:text-muted-foreground focus:border-primary" />

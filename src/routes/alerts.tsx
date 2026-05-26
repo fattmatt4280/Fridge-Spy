@@ -84,6 +84,30 @@ function AlertsPage() {
         <div className="mt-1 text-xs text-muted-foreground">Keep using FridgeSpy to build your streak.</div>
       </div>
 
+      {expiringSoon.length > 0 && (
+        <>
+          <h2 className="mb-2 mt-6 text-xs font-bold uppercase tracking-widest text-muted-foreground">Use these soon</h2>
+          <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface">
+            {expiringSoon.map(item => (
+              <li key={item.id} className="flex items-center gap-3 px-4 py-3">
+                <span className="text-xl">{item.emoji || categoryEmoji(item.name, item.category)}</span>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-semibold">{item.name}</div>
+                  <div className="text-xs text-muted-foreground">{expiryLabel(item.expiry_date)}</div>
+                </div>
+                <Link
+                  to="/recipes"
+                  search={{ focus: item.name }}
+                  className="inline-flex items-center gap-1 rounded-lg bg-primary/15 px-2.5 py-1.5 text-xs font-bold text-primary hover:bg-primary/25"
+                >
+                  <ChefHat size={12}/> Cook this
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
       <h2 className="mb-2 mt-6 text-xs font-bold uppercase tracking-widest text-muted-foreground">History</h2>
       {activity.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-surface/40 p-6 text-center text-sm text-muted-foreground">Nothing yet.</div>

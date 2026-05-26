@@ -167,18 +167,13 @@ If only month/year visible, use the last day of that month. Assume the date is c
       parsed = {};
     }
 
-    // 4. Increment usage (only on a real call — even if no date was found)
-    await supabaseAdmin
-      .from("scan_usage")
-      .update({ used: row.used + 1 })
-      .eq("id", row.id);
-
+    // 4. Usage was already incremented atomically in step 2.
     return {
       ok: true as const,
       expiry_date: parsed.expiry_date ?? null,
       kind: parsed.kind ?? null,
       raw: parsed.raw ?? null,
       confidence: parsed.confidence ?? "low",
-      remaining: Math.max(0, total - (row.used + 1)),
+      remaining: Math.max(0, total - newUsed),
     };
   });

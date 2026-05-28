@@ -92,7 +92,11 @@ function LoginPage() {
           <span className="font-semibold text-primary">{mode === "signin" ? "Sign up" : "Sign in"}</span>
         </button>
 
-        <p className="mt-8 text-center text-[11px] leading-relaxed text-muted-foreground">
+        <p className="mt-6 text-center text-sm">
+          <Link to="/pricing" className="font-semibold text-primary underline">See plans & pricing</Link>
+        </p>
+
+        <p className="mt-4 text-center text-[11px] leading-relaxed text-muted-foreground">
           By continuing you agree to our{" "}
           <Link to="/terms" className="underline hover:text-foreground">Terms</Link> and{" "}
           <Link to="/privacy" className="underline hover:text-foreground">Privacy Policy</Link>.

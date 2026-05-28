@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
+import { PublicFooter } from "@/components/PublicFooter";
 
 export const Route = createFileRoute("/terms")({
   head: () => ({
@@ -11,6 +12,18 @@ export const Route = createFileRoute("/terms")({
       { property: "og:url", content: "https://fridgespy.com/terms" },
     ],
     links: [{ rel: "canonical", href: "https://fridgespy.com/terms" }],
+    scripts: [{
+      type: "application/ld+json",
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        name: "FridgeSpy Terms of Service",
+        url: "https://fridgespy.com/terms",
+        datePublished: "2026-05-28",
+        dateModified: "2026-05-28",
+        publisher: { "@type": "Organization", name: "FridgeSpy", legalName: "Dream Holdings LLC" },
+      }),
+    }],
   }),
   component: TermsPage,
 });
@@ -167,6 +180,7 @@ function TermsPage() {
           See also our <Link to="/privacy" className="underline">Privacy Policy</Link>.
         </p>
       </article>
+      <PublicFooter />
     </div>
   );
 }

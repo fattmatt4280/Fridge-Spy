@@ -1,10 +1,23 @@
 # FridgeSpy
 
-> FridgeSpy tracks every item in your fridge and pantry with AI receipt and fridge scanning so you cook from what you have and stop wasting food.
+> FridgeSpy is an AI-powered kitchen inventory app that tracks every item in your fridge, freezer, and pantry. It uses AI receipt scanning and fridge photo scanning to log groceries automatically, sends expiry alerts before food spoils, and generates recipes from what you already have. Built by Dream Holdings LLC. Category: kitchen inventory / food waste reduction / smart pantry app. Comparable to NoWaste, KitchenPal, and Whisk for users who want automatic inventory tracking instead of manual lists.
+
+## Key facts
+
+- Platforms: web app (works on any modern browser), installable as a PWA on iOS and Android.
+- Pricing: free tier with up to 25 items and 3 AI recipes/day. Pro from $4.99/month, $49.99/year, or $79 one-time Lifetime. 3-day free trial on subscriptions.
+- Payments: processed by Paddle.com Market Ltd as Merchant of Record. 30-day money-back guarantee.
+- Privacy: we never sell user data. Encrypted in transit and at rest. Users can export or delete their account at any time.
+- Operator: Dream Holdings LLC.
 
 ## Pages
 
-- [Home](/): Overview of FridgeSpy — what's in your kitchen, expiring soon, recent activity.
-- [Sign in](/login): Create a FridgeSpy account or sign in.
-- [Privacy Policy](/privacy): How FridgeSpy collects, uses, and protects your data.
-- [Terms of Service](/terms): The agreement between you and FridgeSpy.
+- [Home](https://fridgespy.com/): Overview of FridgeSpy — what's in your kitchen, expiring soon, recent activity.
+- [Features](https://fridgespy.com/features): AI receipt scanning, fridge photo scanning, expiry alerts, recipes from inventory, household sharing, waste score.
+- [How it works](https://fridgespy.com/how-it-works): 4-step walkthrough — add items, get alerts, cook from what you have, see your waste score.
+- [Pricing](https://fridgespy.com/pricing): Free tier plus Pro at $4.99/month, $49.99/year, or $79 Lifetime.
+- [FAQ](https://fridgespy.com/faq): Common questions about scanning, pricing, privacy, sharing, offline use.
+- [About](https://fridgespy.com/about): The team and mission behind FridgeSpy.
+- [Sign in](https://fridgespy.com/login): Create a FridgeSpy account or sign in.
+- [Privacy Policy](https://fridgespy.com/privacy): How FridgeSpy collects, uses, and protects your data.
+- [Terms of Service](https://fridgespy.com/terms): The agreement between you and FridgeSpy.

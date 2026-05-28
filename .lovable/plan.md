@@ -1,50 +1,42 @@
 
-## 1. Product Hunt discount — `PHYEARLY59`
+## Goal
+Right now Google and AI crawlers (ChatGPT, Perplexity, Claude) can only see 5 thin pages: `/`, `/login`, `/pricing`, `/privacy`, `/terms`. Everything else is behind auth. Plus the existing public pages are missing some structured data and a few entries are stale. This plan adds crawlable content depth and richer machine-readable signals — no design or app-logic changes.
 
-Create a recurring discount in Paddle (both sandbox + live) that locks the yearly plan at **$59/year forever** for the first 500 redeemers.
+## What we'll add / change
 
-- **Type:** flat $24.99 off (yearly is $34.99… wait — yearly is $34.99 in the UI today). Need to confirm: your current yearly price is **$34.99/yr**, so "$59 yearly" is *higher* than today's price. I'll assume you mean **raise yearly to ~$83.99** for the launch so the discounted price lands at $59, OR you actually meant **$29** / something else. **Please confirm the target locked-in price before I create the Paddle discount.** I'll proceed with everything else.
-- **Mechanics (once price confirmed):**
-  - Paddle discount: `type=flat`, `currency_code=USD`, `recur=true`, `maximum_recurring_intervals=null` (forever), `usage_limit=500`, `code=PHYEARLY59`, `restrict_to=[yearly price id]`, created in **sandbox AND live**.
-- **UX:** Add a "Have a code?" input to `UpgradeModal.tsx`. When filled, pass `discountCode` to `Paddle.Checkout.open()` in `usePaddleCheckout`. Show inline validation feedback.
-- **Counter:** A small server fn `getDiscountRedemptions` hitting `GET /discounts/{id}` returns `times_used` so the admin panel can display "X / 500 claimed".
+### 1. New public content routes (the big lever)
+Each one is a real, indexable page with its own `head()`, canonical, OG tags, and relevant JSON-LD. These target long-tail searches and give AI assistants something to cite.
 
-## 2. Admin panel
+- `/features` — what FridgeSpy does: receipt scanning, fridge scanning, expiry tracking, smart recipes, waste score. Schema: `SoftwareApplication`.
+- `/how-it-works` — 3–4 step walkthrough. Schema: `HowTo`.
+- `/faq` — 8–12 Q&As ("how does receipt scanning work?", "is my data private?", "can I use it offline?", "what does it cost?", etc.). Schema: `FAQPage` (huge for AI answer surfaces and Google FAQ rich results).
+- `/about` — short brand + mission page citing Dream Holdings LLC. Schema: `AboutPage` + `Organization`.
 
-- **Auth model:** Add a `user_roles` table + `app_role` enum (`admin`, `user`) + `has_role(uuid, app_role)` security-definer function (per project security rules — roles must NOT live on `profiles`). Seed your user as `admin` via a one-off insert (tell me which email to grant).
-- **Route:** `src/routes/_authenticated/admin.tsx` gated by a `beforeLoad` that calls a `requireAdmin` server fn (uses `has_role`). Non-admins get redirected to `/`.
-- **Capabilities (v1):**
-  - **Products & prices:** List from Paddle, edit price amounts (PATCH `/prices/{id}` in both sandbox + live), toggle archive. Updates the displayed prices in `UpgradeModal` via a config table or by reading live amounts on render.
-  - **Discounts:** List, view redemption counts, archive, create new codes.
-  - **Users:** Search users, view subscription status, manually grant/revoke Pro (writes `premium_user` via service-role server fn — the existing trigger already blocks non-service-role changes).
-  - **Stats:** Total users, active subs (sandbox + live separately), PH redemption count, basic revenue from `/metrics/revenue`.
-- All admin mutations go through `createServerFn` + `requireSupabaseAuth` + server-side `has_role` check + `supabaseAdmin` for writes.
+### 2. Enrich existing pages
+- **`/` (home)**: add `SoftwareApplication` JSON-LD with `aggregateRating` slot (omit until we have ratings), `applicationCategory: "LifestyleApplication"`, `operatingSystem: "Web"`, and an `offers` block pointing to `/pricing`.
+- **`/pricing`**: add `Product` + `Offer` JSON-LD (three offers: monthly, yearly, lifetime) so price snippets can appear in SERPs and AI answers.
+- **`/privacy` and `/terms`**: add `WebPage` JSON-LD with `datePublished` / `dateModified`.
+- **`__root.tsx`**: keep current defaults; add `og:site_name` "FridgeSpy".
 
-## 3. Switching payments to LIVE
+### 3. Crawler & AI plumbing
+- **`public/llms.txt`**: expand to list every new public page with a one-line summary each, plus a short product description block that explicitly names competitors/category ("AI kitchen inventory app, alternative to NoWaste / KitchenPal"). This is the file ChatGPT/Perplexity-style crawlers prefer.
+- **`src/routes/sitemap[.]xml.ts`**: add `/pricing`, `/features`, `/how-it-works`, `/faq`, `/about` with sensible `changefreq` / `priority`.
+- **`public/robots.txt`**: explicitly allow `GPTBot`, `OAI-SearchBot`, `ChatGPT-User`, `PerplexityBot`, `ClaudeBot`, `Google-Extended` (some sites block these by default; we want the opposite). Keep the existing `User-agent: *` `Allow: /`.
 
-**Blocker:** Go-live status shows **0 of 7 steps complete**. Live checkout will not work until Paddle verifies the account. The required sequence is:
+### 4. Internal linking
+- Add a lightweight public footer (only on unauthenticated-visible routes: `/`, `/pricing`, `/features`, `/how-it-works`, `/faq`, `/about`, `/privacy`, `/terms`) linking the new pages together. Internal links pass relevance between pages and help crawlers find everything from any entry point.
+- Add the same links to the `/login` page so even direct landings expose the public surface.
 
-1. Publish the app (you need to do this first — verification can't start otherwise).
-2. Complete readiness check (the seller policy pages — Terms, Refund, Privacy — already exist; the readiness check will scan them after publish).
-3. Fill out Verification (business/personal details) in the Payments tab.
-4. Wait for Paddle's domain review, business ID, identity verification, and final review.
+## Out of scope (call out explicitly)
+- No changes to the authenticated app, design system, or business logic.
+- No new images generated (current OG image stays); we can add per-page hero images in a follow-up if you want.
+- No blog / CMS — that's a bigger commitment; flag it as the natural next step once these pages exist.
 
-I cannot "flip a switch" — the live token is already wired into `.env.production`, but Paddle will reject live charges until they approve you.
+## Technical notes
+- All new routes are static TanStack Start file routes (`src/routes/features.tsx`, etc.) with `head()` per the project's existing pattern (canonical on leaf only, no top-level `title` field).
+- Footer goes in a new `src/components/PublicFooter.tsx`, rendered conditionally inside `AppShell` based on the current pathname (same approach as the existing pricing route exposure).
+- After deploy, the Google Search Console connection is already active — the next scheduled crawl will pick up the new sitemap entries automatically; we can also resubmit the sitemap from chat.
 
-<presentation-actions><presentation-open-payments>Go to payments</presentation-open-payments></presentation-actions>
-
-While waiting for approval, I'll add a guard so the upgrade modal shows a "Coming soon" state on the live site if no live subscription has ever succeeded (optional — say the word).
-
-## Technical details
-
-- **DB migration:** `app_role` enum, `user_roles` table with RLS (`select` own + service-role all), `has_role(uuid, app_role)` security-definer fn, grants for `authenticated` + `service_role`.
-- **New server fns** (`src/lib/admin.functions.ts`): `requireAdmin`, `listPaddleProducts`, `updatePaddlePrice`, `listDiscounts`, `createDiscount`, `archiveDiscount`, `listUsers`, `setUserPremium`, `getStats`. All use `requireSupabaseAuth` + internal `has_role` gate.
-- **Checkout hook:** Extend `usePaddleCheckout` signature with optional `discountCode`.
-- **Upgrade modal:** Add collapsible "Have a code?" row above the CTA.
-- **Admin route tree:** `_authenticated/admin.tsx` (layout) + sub-tabs (Products, Discounts, Users, Stats) as in-page tabs, not separate routes.
-
-## Questions before I build
-
-1. **Confirm the locked-in yearly price** (today's yearly is $34.99 — $59 would be a price *increase*; did you mean $29, or are you raising yearly to make the PH deal feel like a discount?).
-2. **Your admin email** (so I can seed the `admin` role).
-3. Want the "Coming soon" / disabled-checkout guard on the live site until Paddle approves you, or leave checkout active and let users see Paddle's error?
+## Expected impact
+- Search: ~5 → ~10 indexable pages, each targeting distinct queries, with FAQ + Product + HowTo rich-result eligibility.
+- AI assistants: `llms.txt` + `FAQPage` schema + explicit allow for AI crawlers materially improves the chance FridgeSpy gets cited when users ask "best app to track fridge expiry" or "how to stop food waste at home".

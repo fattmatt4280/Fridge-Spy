@@ -9,6 +9,8 @@ import { usePremium } from "@/hooks/usePremium";
 
 type Plan = "monthly" | "yearly" | "lifetime";
 
+const YEARLY_PRICE_LABEL = "$49.99";
+
 const PLAN_PRICE_ID: Record<Plan, string> = {
   monthly: "pro_monthly",
   yearly: "pro_yearly",
@@ -23,9 +25,12 @@ export function UpgradeModal({
   onClose: () => void;
 }) {
   const [plan, setPlan] = useState<Plan>("yearly");
+  const [discountCode, setDiscountCode] = useState("");
+  const [showCodeField, setShowCodeField] = useState(false);
   const { openCheckout, loading } = usePaddleCheckout();
   const { user } = useAuth();
   const { isPremium } = usePremium();
+
 
   useEffect(() => {
     if (reason && isPremium) onClose();
@@ -40,11 +45,13 @@ export function UpgradeModal({
         priceId: PLAN_PRICE_ID[plan],
         customerEmail: user?.email,
         userId: user?.id,
+        discountCode: discountCode.trim() || undefined,
       });
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Couldn't start checkout");
     }
   }
+
 
   const ctaLabel = plan === "lifetime" ? "Get Lifetime — $79" : "Start 3-Day Free Trial";
 

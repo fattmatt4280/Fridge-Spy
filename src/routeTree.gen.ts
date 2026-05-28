@@ -16,6 +16,7 @@ import { Route as ScanReceiptRouteImport } from './routes/scan-receipt'
 import { Route as ScanFridgeRouteImport } from './routes/scan-fridge'
 import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InventoryRouteImport } from './routes/inventory'
@@ -60,6 +61,11 @@ const RecipesRoute = RecipesRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -123,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/recipes': typeof RecipesRoute
   '/scan-fridge': typeof ScanFridgeRoute
@@ -142,6 +149,7 @@ export interface FileRoutesByTo {
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/recipes': typeof RecipesRoute
   '/scan-fridge': typeof ScanFridgeRoute
@@ -162,6 +170,7 @@ export interface FileRoutesById {
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/recipes': typeof RecipesRoute
   '/scan-fridge': typeof ScanFridgeRoute
@@ -183,6 +192,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/login'
     | '/onboarding'
+    | '/pricing'
     | '/privacy'
     | '/recipes'
     | '/scan-fridge'
@@ -202,6 +212,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/login'
     | '/onboarding'
+    | '/pricing'
     | '/privacy'
     | '/recipes'
     | '/scan-fridge'
@@ -221,6 +232,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/login'
     | '/onboarding'
+    | '/pricing'
     | '/privacy'
     | '/recipes'
     | '/scan-fridge'
@@ -241,6 +253,7 @@ export interface RootRouteChildren {
   InventoryRoute: typeof InventoryRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
+  PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   RecipesRoute: typeof RecipesRoute
   ScanFridgeRoute: typeof ScanFridgeRoute
@@ -301,6 +314,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -385,6 +405,7 @@ const rootRouteChildren: RootRouteChildren = {
   InventoryRoute: InventoryRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
+  PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   RecipesRoute: RecipesRoute,
   ScanFridgeRoute: ScanFridgeRoute,

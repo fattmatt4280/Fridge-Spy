@@ -15,9 +15,9 @@ export const Route = createFileRoute("/privacy")({
   component: PrivacyPage,
 });
 
-const LEGAL_NAME = "[Your legal name or business entity]";
+const LEGAL_NAME = "Dream Holdings LLC";
 const CONTACT_EMAIL = "support@fridgespy.app";
-const LAST_UPDATED = "May 25, 2026";
+const LAST_UPDATED = "May 28, 2026";
 
 function PrivacyPage() {
   return (

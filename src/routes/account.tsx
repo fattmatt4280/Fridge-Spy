@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { ChevronLeft, Sparkles, LogOut, ExternalLink, Camera, Trash2, ChefHat } from "lucide-react";
+import { ChevronLeft, Sparkles, LogOut, ExternalLink, Camera, Trash2, ChefHat, ShieldCheck } from "lucide-react";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -36,6 +37,7 @@ function AccountPage() {
   const deleteAccountFn = useServerFn(deleteAccount);
   const { data: quota } = useScanQuota();
   const { openCheckout, loading: buyingPack } = usePaddleCheckout();
+  const { isAdmin } = useIsAdmin();
   const [opening, setOpening] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState("");
@@ -130,6 +132,22 @@ function AccountPage() {
           <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Signed in as</div>
           <div className="mt-1 text-base font-semibold">{user?.email || "Guest"}</div>
         </section>
+
+        {isAdmin && (
+          <Link
+            to="/admin"
+            className="mt-4 flex items-center justify-between rounded-2xl border border-primary/40 bg-primary/10 p-4 transition hover:bg-primary/15"
+          >
+            <div className="flex items-center gap-3">
+              <ShieldCheck size={18} className="text-primary" />
+              <div>
+                <div className="text-sm font-bold">Admin panel</div>
+                <div className="text-[11px] text-muted-foreground">Manage pricing, discounts & users</div>
+              </div>
+            </div>
+            <ExternalLink size={14} className="text-muted-foreground" />
+          </Link>
+        )}
 
         <section className="glass-card mt-4 p-5">
           <div className="flex items-center gap-2">

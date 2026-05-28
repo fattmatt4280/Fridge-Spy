@@ -9,6 +9,8 @@ import { usePremium } from "@/hooks/usePremium";
 
 type Plan = "monthly" | "yearly" | "lifetime";
 
+const YEARLY_PRICE_LABEL = "$49.99";
+
 const PLAN_PRICE_ID: Record<Plan, string> = {
   monthly: "pro_monthly",
   yearly: "pro_yearly",
@@ -23,9 +25,12 @@ export function UpgradeModal({
   onClose: () => void;
 }) {
   const [plan, setPlan] = useState<Plan>("yearly");
+  const [discountCode, setDiscountCode] = useState("");
+  const [showCodeField, setShowCodeField] = useState(false);
   const { openCheckout, loading } = usePaddleCheckout();
   const { user } = useAuth();
   const { isPremium } = usePremium();
+
 
   useEffect(() => {
     if (reason && isPremium) onClose();
@@ -40,11 +45,13 @@ export function UpgradeModal({
         priceId: PLAN_PRICE_ID[plan],
         customerEmail: user?.email,
         userId: user?.id,
+        discountCode: discountCode.trim() || undefined,
       });
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Couldn't start checkout");
     }
   }
+
 
   const ctaLabel = plan === "lifetime" ? "Get Lifetime — $79" : "Start 3-Day Free Trial";
 
@@ -109,9 +116,9 @@ export function UpgradeModal({
               active={plan === "yearly"}
               onClick={() => setPlan("yearly")}
               title="Yearly"
-              price="$34.99"
+              price={YEARLY_PRICE_LABEL}
               unit="/yr"
-              badge="Save 42%"
+              badge="Save 17%"
             />
             <PlanPill
               active={plan === "lifetime"}
@@ -123,11 +130,42 @@ export function UpgradeModal({
             />
           </div>
 
+          {/* Discount code */}
+          <div className="mt-3">
+            {showCodeField ? (
+              <div className="flex gap-2">
+                <input
+                  value={discountCode}
+                  onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                  placeholder="Enter code (e.g. PHYEARLY)"
+                  maxLength={32}
+                  className="flex-1 rounded-lg border border-border bg-background/40 px-3 py-2 text-sm uppercase tracking-wider placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => { setShowCodeField(false); setDiscountCode(""); }}
+                  className="rounded-lg px-2 py-2 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  Clear
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowCodeField(true)}
+                className="w-full text-center text-xs text-muted-foreground underline hover:text-foreground"
+              >
+                Have a code?
+              </button>
+            )}
+          </div>
+
           <p className="mt-3 text-center text-[11px] leading-relaxed text-muted-foreground">
             {plan === "monthly" && "3 days free, then $4.99/month. Auto-renews until canceled. Cancel anytime in Account."}
-            {plan === "yearly" && "3 days free, then $34.99/year. Auto-renews until canceled. Cancel anytime in Account."}
+            {plan === "yearly" && `3 days free, then ${YEARLY_PRICE_LABEL}/year. Auto-renews until canceled. Cancel anytime in Account.`}
             {plan === "lifetime" && "One-time payment of $79 · lifetime access, no recurring charges."}
           </p>
+
 
           <button
             onClick={startCheckout}

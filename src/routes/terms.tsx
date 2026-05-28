@@ -146,9 +146,10 @@ function TermsPage() {
 
         <h2 className="text-base font-bold">12. Governing law</h2>
         <p>
-          These Terms are governed by the laws of the jurisdiction in which {LEGAL_NAME} is established,
-          without regard to conflict-of-laws principles. Disputes will be resolved in the competent courts
-          of that jurisdiction, unless mandatory consumer law in your country of residence provides otherwise.
+          These Terms are governed by the laws of the State of Delaware, United States,
+          without regard to its conflict-of-laws principles. Disputes will be resolved in
+          the competent state or federal courts located in Delaware, unless mandatory
+          consumer law in your country of residence provides otherwise.
         </p>
 
         <h2 className="text-base font-bold">13. Changes</h2>

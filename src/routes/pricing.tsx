@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, Sparkles, ChevronLeft } from "lucide-react";
 import { PREMIUM_FEATURES } from "@/lib/limits";
+import { PublicFooter } from "@/components/PublicFooter";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -12,6 +13,22 @@ export const Route = createFileRoute("/pricing")({
       { property: "og:url", content: "https://fridgespy.com/pricing" },
     ],
     links: [{ rel: "canonical", href: "https://fridgespy.com/pricing" }],
+    scripts: [{
+      type: "application/ld+json",
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name: "FridgeSpy Pro",
+        description: "Unlimited inventory, AI receipt and fridge scanning, unlimited recipes, household sharing for up to 5, weekly waste report.",
+        brand: { "@type": "Brand", name: "FridgeSpy" },
+        url: "https://fridgespy.com/pricing",
+        offers: [
+          { "@type": "Offer", name: "Monthly", price: "4.99", priceCurrency: "USD", url: "https://fridgespy.com/pricing", availability: "https://schema.org/InStock" },
+          { "@type": "Offer", name: "Yearly", price: "49.99", priceCurrency: "USD", url: "https://fridgespy.com/pricing", availability: "https://schema.org/InStock" },
+          { "@type": "Offer", name: "Lifetime", price: "79.00", priceCurrency: "USD", url: "https://fridgespy.com/pricing", availability: "https://schema.org/InStock" },
+        ],
+      }),
+    }],
   }),
   component: PricingPage,
 });
@@ -106,6 +123,7 @@ function PricingPage() {
           </p>
         </div>
       </section>
+      <PublicFooter />
     </div>
   );
 }

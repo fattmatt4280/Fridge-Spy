@@ -62,6 +62,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/d04e5428-0fe8-4e55-ba78-66641cad20ba/id-preview-46a71ece--c293ce98-5e15-4790-97c7-a0c026491798.lovable.app-1779748192280.png" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "FridgeSpy" },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),

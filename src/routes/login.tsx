@@ -92,9 +92,15 @@ function LoginPage() {
           <span className="font-semibold text-primary">{mode === "signin" ? "Sign up" : "Sign in"}</span>
         </button>
 
-        <p className="mt-6 text-center text-sm">
-          <Link to="/pricing" className="font-semibold text-primary underline">See plans & pricing</Link>
-        </p>
+        <nav className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm">
+          <Link to="/features" className="text-muted-foreground hover:text-foreground">Features</Link>
+          <span aria-hidden="true" className="text-muted-foreground/50">·</span>
+          <Link to="/how-it-works" className="text-muted-foreground hover:text-foreground">How it works</Link>
+          <span aria-hidden="true" className="text-muted-foreground/50">·</span>
+          <Link to="/pricing" className="font-semibold text-primary underline">Pricing</Link>
+          <span aria-hidden="true" className="text-muted-foreground/50">·</span>
+          <Link to="/faq" className="text-muted-foreground hover:text-foreground">FAQ</Link>
+        </nav>
 
         <p className="mt-4 text-center text-[11px] leading-relaxed text-muted-foreground">
           By continuing you agree to our{" "}

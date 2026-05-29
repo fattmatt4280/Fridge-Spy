@@ -11,6 +11,7 @@ import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 import { AppShell } from "@/components/AppShell";
+import { LiquidMetalBackground } from "@/components/LiquidMetalBackground";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 

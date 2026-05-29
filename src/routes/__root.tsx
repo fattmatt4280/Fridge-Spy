@@ -121,6 +121,7 @@ function RootComponent() {
   }, [router, queryClient]);
   return (
     <QueryClientProvider client={queryClient}>
+      <LiquidMetalBackground />
       <AppShell>
         <Outlet />
       </AppShell>

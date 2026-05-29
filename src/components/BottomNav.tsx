@@ -1,8 +1,8 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Home, Package, Plus, ShoppingCart, ChefHat } from "lucide-react";
 
-const tabs: { to: "/" | "/inventory" | "/add" | "/shopping" | "/recipes"; label: string; icon: typeof Home; primary?: boolean }[] = [
-  { to: "/", label: "Home", icon: Home },
+const tabs: { to: "/app" | "/inventory" | "/add" | "/shopping" | "/recipes"; label: string; icon: typeof Home; primary?: boolean }[] = [
+  { to: "/app", label: "Home", icon: Home },
   { to: "/inventory", label: "Inventory", icon: Package },
   { to: "/add", label: "Add", icon: Plus, primary: true },
   { to: "/shopping", label: "Shop", icon: ShoppingCart },

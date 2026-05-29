@@ -54,7 +54,7 @@ function AdminPage() {
         <ShieldCheck className="h-10 w-10 text-muted-foreground" />
         <h1 className="text-lg font-semibold">Admins only</h1>
         <p className="text-sm text-muted-foreground">You don't have access to this area.</p>
-        <Link to="/" className="mt-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
+        <Link to="/app" className="mt-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
           Go home
         </Link>
       </div>

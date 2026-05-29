@@ -1,22 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
-import { Bell, Camera, Receipt, Plus, ChefHat, Sparkles, UserCircle2, Flame } from "lucide-react";
+import { useState } from "react";
+import { Receipt, Camera, Bell, ChefHat, Gauge, Flame, ArrowRight, ChevronDown, Sparkles } from "lucide-react";
 import { Logo } from "@/components/ui-fs/Logo";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { daysUntil, expiryLabel, expiryStatus, categoryEmoji } from "@/lib/expiry";
-import { HomeScoreCard } from "@/components/HomeScoreCard";
-import { getCookedStreak } from "@/lib/cooking.functions";
+import { PublicFooter } from "@/components/PublicFooter";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "FridgeSpy — Know what's in your kitchen. Always." },
-      { name: "description", content: "FridgeSpy tracks every item in your fridge and pantry with AI receipt and fridge scanning, so you cook from what you have and stop wasting food." },
+      { name: "description", content: "FridgeSpy is the AI kitchen inventory app that scans your receipts and fridge, alerts you before food expires, and turns what you already have into tonight's dinner. Stop wasting food. Free to start." },
       { property: "og:title", content: "FridgeSpy — Your kitchen, organized" },
-      { property: "og:description", content: "Track every item in your kitchen with AI scanning. Stop wasting food and cook from what you already have." },
+      { property: "og:description", content: "AI receipt + fridge scanning, expiry alerts, and recipes from what you already have. Cut household food waste." },
       { property: "og:url", content: "https://fridgespy.com/" },
+      { property: "og:type", content: "website" },
     ],
     links: [{ rel: "canonical", href: "https://fridgespy.com/" }],
     scripts: [
@@ -59,211 +55,219 @@ export const Route = createFileRoute("/")({
           },
         }),
       },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Features", url: "https://fridgespy.com/features" },
+            { "@type": "ListItem", position: 2, name: "How it works", url: "https://fridgespy.com/how-it-works" },
+            { "@type": "ListItem", position: 3, name: "Pricing", url: "https://fridgespy.com/pricing" },
+            { "@type": "ListItem", position: 4, name: "FAQ", url: "https://fridgespy.com/faq" },
+            { "@type": "ListItem", position: 5, name: "About", url: "https://fridgespy.com/about" },
+          ],
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: TEASER_FAQS.map(f => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        }),
+      },
     ],
   }),
-  component: HomePage,
+  component: LandingPage,
 });
 
-function HomePage() {
-  const { user } = useAuth();
-  const streakFn = useServerFn(getCookedStreak);
+const FEATURES = [
+  { icon: Receipt, title: "Snap your receipt", body: "Photograph any grocery receipt — AI logs every item, brand, and category automatically." },
+  { icon: Camera, title: "Scan your fridge", body: "Point your camera inside. FridgeSpy identifies what's there so you don't type a thing." },
+  { icon: Bell, title: "Expiry alerts", body: "Gentle reminders the day before food spoils — not a noisy stream of pings." },
+  { icon: ChefHat, title: "Recipes from what you have", body: "One tap turns what's about to expire into tonight's dinner. No grocery trip required." },
+  { icon: Gauge, title: "FridgeSpy Score", body: "A simple score that tracks how well your kitchen is running — and how much waste you've avoided." },
+  { icon: Flame, title: "Cook streaks", body: "Build a daily streak for cooking at home. Gentle nudges, real money saved." },
+];
 
-  const { data: streakData } = useQuery({
-    queryKey: ["cooked-streak", user?.id],
-    enabled: !!user,
-    queryFn: () => streakFn(),
-  });
-  const streak = streakData?.streak ?? 0;
+const TEASER_FAQS = [
+  { q: "Is FridgeSpy really free?", a: "Yes. The free plan covers up to 25 tracked items and 3 AI recipes per day. Pro unlocks unlimited everything from $4.99/month, and there's a 3-day free trial." },
+  { q: "Do I have to type in every item?", a: "No. Most users only ever snap a receipt or scan their fridge — FridgeSpy adds the items for you. You can also barcode-scan or add manually if you prefer." },
+  { q: "Do you sell my data?", a: "Never. Your kitchen data is yours. We don't run ads, we don't sell data, and you can export or delete your account at any time." },
+];
 
-
-
-
-
-  const { data: items = [] } = useQuery({
-    queryKey: ["items", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("items")
-        .select("*")
-        .order("expiry_date", { ascending: true, nullsFirst: false });
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
-  const { data: activity = [] } = useQuery({
-    queryKey: ["activity", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("activity_log")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(10);
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
-  const expiring = items.filter(i => {
-    const d = daysUntil(i.expiry_date);
-    return d !== null && d >= 0 && d <= 7;
-  });
-  const expired = items.filter(i => {
-    const d = daysUntil(i.expiry_date);
-    return d !== null && d < 0;
-  });
-
-  // Guests (no user) still see the home shell with empty data.
-
-  const hour = new Date().getHours();
-  const greeting = hour < 5 ? "Late night" : hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
-  const firstName = (user?.user_metadata as any)?.full_name?.split(" ")[0] ?? (user?.email?.split("@")[0]);
-
+function LandingPage() {
   return (
-    <div className="px-4 pt-[max(env(safe-area-inset-top),1rem)]">
-      <h1 className="sr-only">FridgeSpy — your kitchen, organized</h1>
-      <header className="flex items-center justify-between py-3">
-        <Logo />
-        <div className="flex items-center gap-1">
-          <Link to="/account" className="rounded-full p-2 text-muted-foreground hover:text-foreground hover:bg-surface" aria-label="Account">
-            <UserCircle2 size={22} />
-          </Link>
-          <Link to="/alerts" className="relative rounded-full p-2 text-muted-foreground hover:text-foreground hover:bg-surface" aria-label="Alerts">
-            <Bell size={22} />
-            {expired.length > 0 && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-destructive" />}
+    <div className="min-h-screen">
+      {/* Top nav */}
+      <header className="px-5 pt-[max(env(safe-area-inset-top),1.25rem)]">
+        <div className="mx-auto flex max-w-5xl items-center justify-between">
+          <Link to="/" aria-label="FridgeSpy home"><Logo /></Link>
+          <nav className="hidden items-center gap-5 text-sm font-medium text-muted-foreground sm:flex">
+            <Link to="/features" className="hover:text-foreground">Features</Link>
+            <Link to="/how-it-works" className="hover:text-foreground">How it works</Link>
+            <Link to="/pricing" className="hover:text-foreground">Pricing</Link>
+            <Link to="/faq" className="hover:text-foreground">FAQ</Link>
+          </nav>
+          <Link to="/login" className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20">
+            Sign in
           </Link>
         </div>
       </header>
 
-      {user && (
-        <div className="flex items-center justify-between gap-2">
-          <div className="text-sm text-muted-foreground">
-            {greeting}{firstName ? `, ${firstName}` : ""}.
+      {/* Hero */}
+      <section className="px-5 pt-10 sm:pt-16">
+        <div className="mx-auto max-w-3xl text-center">
+          <div className="flex justify-center pt-2">
+            <Logo size="2xl" animated />
           </div>
-          {streak > 0 && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2.5 py-1 text-xs font-bold text-warning">
-              <Flame size={12} /> {streak}-day cook streak
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* Summary card */}
-      <section className="glass-card mt-2 p-5">
-        <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">The Spy Report</div>
-        <div className="mt-3 grid grid-cols-3 gap-3">
-          <SummaryStat to="/inventory" value={items.length} label="tracked" tone="primary" />
-          <SummaryStat to="/inventory" filter="expiring" value={expiring.length} label="expiring soon" tone="warning" />
-          <SummaryStat to="/inventory" filter="expired" value={expired.length} label="expired" tone="destructive" />
+          <span className="mt-8 inline-block rounded-full bg-primary/15 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-primary">
+            AI kitchen inventory
+          </span>
+          <h1 className="mt-4 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">
+            Know what's in your kitchen.<br className="hidden sm:block" /> <span className="text-primary-glow">Always.</span>
+          </h1>
+          <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-foreground/80 sm:text-lg">
+            FridgeSpy scans your receipts and your fridge, warns you before food spoils, and turns what you already have into tonight's dinner. Stop throwing money in the trash.
+          </p>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link to="/login" className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-base font-bold text-primary-foreground shadow-lg shadow-primary/30 transition active:scale-[0.98]">
+              Get started free <ArrowRight size={18} />
+            </Link>
+            <Link to="/how-it-works" className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface/60 px-6 py-3.5 text-base font-semibold text-foreground backdrop-blur">
+              See how it works
+            </Link>
+          </div>
+          <p className="mt-4 text-xs text-muted-foreground">Free to start · No credit card · Works on web, iOS &amp; Android</p>
         </div>
       </section>
 
-      {/* FridgeSpy Score + waste saved */}
-      <HomeScoreCard />
-
-      {/* Quick actions */}
-      <section className="mt-4 grid grid-cols-3 gap-2">
-        <QuickAction to="/scan-receipt" icon={<Receipt size={20} />} label="Snap Receipt" />
-        <QuickAction to="/scan-fridge" icon={<Camera size={20} />} label="Scan Fridge" />
-        <QuickAction to="/add" icon={<Plus size={20} />} label="Add Item" />
-      </section>
-
-      {/* Expiring Soon */}
-      <section className="mt-6">
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Expiring Soon</h2>
-          <Link to="/inventory" className="text-xs font-semibold text-primary">See all</Link>
-        </div>
-        {expiring.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border bg-surface/40 px-4 py-8 text-center">
-            <div className="text-3xl">✅</div>
-            <div className="mt-2 text-sm font-bold">Nothing's expiring soon.</div>
-            <div className="mt-1 text-xs text-muted-foreground">Nice work keeping your kitchen fresh! Check back after your next grocery run.</div>
+      {/* How it works (3-step) */}
+      <section className="px-5 pt-20">
+        <div className="mx-auto max-w-5xl">
+          <div className="text-center">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-primary">How it works</span>
+            <h2 className="mt-2 text-2xl font-extrabold sm:text-3xl">From grocery bag to dinner — in three taps.</h2>
           </div>
-        ) : (
-          <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-1">
-            {expiring.map(item => {
-              const status = expiryStatus(item.expiry_date);
-              return (
-                <div key={item.id} className="glass-card flex w-32 shrink-0 flex-col items-center p-3 text-center">
-                  <div className="text-3xl">{item.emoji || categoryEmoji(item.name, item.category)}</div>
-                  <div className="mt-2 line-clamp-1 text-sm font-semibold">{item.name}</div>
-                  <div className={`stat-pill mt-1 ${status === "urgent" || status === "expired" ? "bg-destructive/15 text-destructive" : status === "soon" ? "bg-warning/15 text-warning" : "bg-primary/15 text-primary"}`}>
-                    {expiryLabel(item.expiry_date)}
-                  </div>
+          <ol className="mt-10 grid gap-4 sm:grid-cols-3">
+            {[
+              { n: "01", icon: Receipt, t: "Snap a receipt", d: "Or scan your fridge. FridgeSpy logs every item for you." },
+              { n: "02", icon: Bell, t: "Track freshness", d: "Get a gentle heads-up the day before anything goes bad." },
+              { n: "03", icon: ChefHat, t: "Cook tonight", d: "One tap turns what's about to expire into a real recipe." },
+            ].map((s) => (
+              <li key={s.n} className="glass-card p-5">
+                <div className="flex items-center justify-between">
+                  <span className="rounded-xl bg-primary/15 p-2.5 text-primary"><s.icon size={22} /></span>
+                  <span className="text-xs font-bold tabular-nums text-muted-foreground">{s.n}</span>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      {/* Tonight's Cook */}
-      <Link
-        to="/recipes"
-        className="mt-6 flex w-full items-center justify-between rounded-2xl bg-primary px-5 py-4 text-primary-foreground shadow-lg shadow-primary/30 transition active:scale-[0.98]"
-      >
-        <div className="flex items-center gap-3">
-          <span className="rounded-xl bg-black/10 p-2"><ChefHat size={22} /></span>
-          <div className="text-left">
-            <div className="text-base font-bold">Tonight's Cook</div>
-            <div className="text-xs opacity-90">Recipe from what's about to expire</div>
+                <h3 className="mt-4 text-lg font-bold">{s.t}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{s.d}</p>
+              </li>
+            ))}
+          </ol>
+          <div className="mt-6 text-center">
+            <Link to="/how-it-works" className="text-sm font-semibold text-primary underline">See the full walkthrough →</Link>
           </div>
         </div>
-        <Sparkles size={20} />
-      </Link>
+      </section>
 
-      {/* Recent activity */}
-      <section className="mt-7">
-        <h2 className="mb-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">Recent activity</h2>
-        {activity.length === 0 ? (
-          <div className="text-sm text-muted-foreground">No activity yet. Add your first item.</div>
-        ) : (
-          <ul className="divide-y divide-border rounded-2xl border border-border bg-surface">
-            {activity.map(a => (
-              <li key={a.id} className="flex items-start gap-3 px-4 py-3">
-                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                <div className="flex-1">
-                  <div className="text-sm">{a.message}</div>
-                  <div className="text-xs text-muted-foreground">{new Date(a.created_at).toLocaleString()}</div>
-                </div>
+      {/* Feature highlights */}
+      <section className="px-5 pt-20">
+        <div className="mx-auto max-w-5xl">
+          <div className="text-center">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-primary">Features</span>
+            <h2 className="mt-2 text-2xl font-extrabold sm:text-3xl">Everything you need. Nothing you don't.</h2>
+          </div>
+          <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {FEATURES.map((f) => (
+              <li key={f.title} className="glass-card p-5">
+                <span className="inline-flex rounded-xl bg-primary/15 p-2.5 text-primary"><f.icon size={20} /></span>
+                <h3 className="mt-3 text-base font-bold">{f.title}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{f.body}</p>
               </li>
             ))}
           </ul>
-        )}
+          <div className="mt-6 text-center">
+            <Link to="/features" className="text-sm font-semibold text-primary underline">Explore all features →</Link>
+          </div>
+        </div>
       </section>
+
+      {/* Pricing teaser */}
+      <section className="px-5 pt-20">
+        <div className="mx-auto max-w-3xl">
+          <div className="glass-card p-7 text-center">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-primary">Pricing</span>
+            <h2 className="mt-2 text-2xl font-extrabold sm:text-3xl">Free to start. Pro when you're ready.</h2>
+            <p className="mx-auto mt-3 max-w-lg text-sm text-muted-foreground">
+              25 items and 3 AI recipes a day on the free plan — forever. Go unlimited from <strong className="text-foreground">$4.99/month</strong>, with a 3-day free trial and a 30-day money-back guarantee.
+            </p>
+            <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Link to="/pricing" className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20">
+                See plans <ArrowRight size={16} />
+              </Link>
+              <Link to="/login" className="text-sm font-semibold text-primary underline">Start free →</Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ teaser */}
+      <section className="px-5 pt-20">
+        <div className="mx-auto max-w-3xl">
+          <div className="text-center">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-primary">FAQ</span>
+            <h2 className="mt-2 text-2xl font-extrabold sm:text-3xl">Quick answers.</h2>
+          </div>
+          <ul className="mt-8 space-y-3">
+            {TEASER_FAQS.map((f, i) => <FaqItem key={i} q={f.q} a={f.a} />)}
+          </ul>
+          <div className="mt-6 text-center">
+            <Link to="/faq" className="text-sm font-semibold text-primary underline">Read all FAQs →</Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="px-5 pt-20">
+        <div className="mx-auto max-w-3xl">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-primary-glow p-10 text-center text-primary-foreground shadow-2xl shadow-primary/40">
+            <Sparkles className="mx-auto" size={28} />
+            <h2 className="mt-3 text-2xl font-extrabold sm:text-3xl">Start cutting food waste tonight.</h2>
+            <p className="mx-auto mt-2 max-w-md text-sm opacity-90">
+              The average household throws away $1,500 of food a year. FridgeSpy is the simple fix.
+            </p>
+            <Link to="/login" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-background px-6 py-3 text-sm font-bold text-foreground shadow-lg transition active:scale-[0.98]">
+              Create your free account <ArrowRight size={16} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <PublicFooter />
     </div>
   );
 }
 
-function SummaryStat({ value, label, tone, to, filter }: { value: number; label: string; tone: "primary" | "warning" | "destructive"; to?: string; filter?: "expiring" | "expired" }) {
-  const color = tone === "primary" ? "text-primary" : tone === "warning" ? "text-warning" : "text-destructive";
-  const inner = (
-    <>
-      <div className={`text-3xl font-extrabold tabular-nums ${color}`}>{value}</div>
-      <div className="mt-0.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</div>
-    </>
-  );
-  if (to) {
-    return (
-      <Link to={to as any} search={filter ? { filter } as any : undefined} className="rounded-xl bg-background/40 p-3 text-center transition active:scale-95 hover:bg-background/60">
-        {inner}
-      </Link>
-    );
-  }
-  return <div className="rounded-xl bg-background/40 p-3 text-center">{inner}</div>;
-}
-
-function QuickAction({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) {
+function FaqItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false);
   return (
-    <Link
-      to={to as any}
-      className="flex flex-col items-center gap-1.5 rounded-2xl border border-border bg-surface px-2 py-3 text-center text-xs font-semibold transition active:scale-95 hover:border-primary/40"
-    >
-      <span className="text-primary">{icon}</span>
-      {label}
-    </Link>
+    <li className="rounded-2xl border border-border bg-surface">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
+        aria-expanded={open}
+      >
+        <span className="text-sm font-semibold">{q}</span>
+        <ChevronDown size={18} className={`shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && <div className="border-t border-border px-5 py-4 text-sm leading-relaxed text-muted-foreground">{a}</div>}
+    </li>
   );
 }

@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BottomNav } from "@/components/BottomNav";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
-const PUBLIC = new Set(["/login", "/onboarding", "/pricing", "/privacy", "/terms", "/features", "/how-it-works", "/faq", "/about"]);
+const PUBLIC = new Set(["/", "/login", "/onboarding", "/pricing", "/privacy", "/terms", "/features", "/how-it-works", "/faq", "/about"]);
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -18,6 +18,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (loading) return;
+    // Authenticated users on the public landing → send to their app dashboard.
+    if (user && path === "/") {
+      navigate({ to: "/app", replace: true });
+      return;
+    }
     const guest = typeof window !== "undefined" && localStorage.getItem("fridgespy.guest") === "1";
     if (!user && !guest && !PUBLIC.has(path)) {
       navigate({ to: "/login", replace: true });

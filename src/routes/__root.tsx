@@ -11,6 +11,7 @@ import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 import { AppShell } from "@/components/AppShell";
+import { LiquidMetalBackground } from "@/components/LiquidMetalBackground";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 
@@ -50,7 +51,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { name: "theme-color", content: "#0d1117" },
+      { name: "theme-color", content: "#0a0f1c" },
       { name: "google-site-verification", content: "oS_ZVuCIVDyEnihG2xi0AQmeAeMzb86j12PAzUXsbHk" },
       { title: "FridgeSpy — Know what's in your kitchen. Always." },
       { name: "description", content: "Track every item in your kitchen with AI receipt and fridge scanning. Stop wasting food, cook from what you have." },
@@ -64,7 +65,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "FridgeSpy" },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "icon", type: "image/png", href: "/icon-512.png" },
+      { rel: "apple-touch-icon", href: "/icon-512.png" },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -116,6 +121,7 @@ function RootComponent() {
   }, [router, queryClient]);
   return (
     <QueryClientProvider client={queryClient}>
+      <LiquidMetalBackground />
       <AppShell>
         <Outlet />
       </AppShell>

@@ -22,6 +22,7 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-glow: var(--primary-glow);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -41,44 +42,48 @@
   --color-surface-elevated: var(--surface-elevated);
 }
 
-/* FridgeSpy dark theme is the default */
+/* FridgeSpy — Royal Blue dark theme (matches app logo) */
 :root {
   --radius: 0.875rem;
 
-  /* Background palette */
-  --background: oklch(0.165 0.012 260);          /* #0d1117 */
-  --surface: oklch(0.205 0.012 260);             /* #161b22 */
-  --surface-elevated: oklch(0.245 0.014 260);    /* slightly lifted card */
-  --foreground: oklch(0.945 0.008 240);          /* #e6edf3 */
-  --muted: oklch(0.245 0.014 260);
-  --muted-foreground: oklch(0.66 0.018 250);     /* #8b949e */
+  /* Background palette — deep blue-tinted near-black */
+  --background: oklch(0.16 0.035 264);            /* ~ #0a0f1c */
+  --surface: oklch(0.215 0.045 262);              /* ~ #0f1729 */
+  --surface-elevated: oklch(0.255 0.05 262);
+  --foreground: oklch(0.965 0.012 240);
+  --muted: oklch(0.255 0.05 262);
+  --muted-foreground: oklch(0.7 0.03 250);
 
   --card: var(--surface);
   --card-foreground: var(--foreground);
   --popover: var(--surface-elevated);
   --popover-foreground: var(--foreground);
 
-  /* Accent — fresh green */
-  --primary: oklch(0.78 0.19 152);               /* #00d26a */
-  --primary-foreground: oklch(0.165 0.012 260);
+  /* Primary — logo royal blue */
+  --primary: oklch(0.54 0.235 264);               /* ~ #1d4ed8 */
+  --primary-foreground: oklch(0.98 0 0);
+  --primary-glow: oklch(0.7 0.19 256);            /* ~ #3b82f6 */
   --accent: var(--primary);
   --accent-foreground: var(--primary-foreground);
 
-  /* Secondary surface */
-  --secondary: oklch(0.245 0.014 260);
+  --secondary: oklch(0.255 0.05 262);
   --secondary-foreground: var(--foreground);
 
-  /* Status colors */
-  --warning: oklch(0.81 0.17 80);                /* #f0b429 */
-  --warning-foreground: oklch(0.165 0.012 260);
-  --destructive: oklch(0.68 0.22 25);            /* #ff4444 */
-  --destructive-foreground: oklch(0.97 0.01 240);
-  --success: var(--primary);
-  --success-foreground: var(--primary-foreground);
+  /* Status colors — kept distinct from primary blue */
+  --warning: oklch(0.81 0.17 80);
+  --warning-foreground: oklch(0.16 0.035 264);
+  --destructive: oklch(0.68 0.22 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --success: oklch(0.78 0.19 152);
+  --success-foreground: oklch(0.16 0.035 264);
 
-  --border: oklch(0.275 0.014 260);
-  --input: oklch(0.245 0.014 260);
-  --ring: var(--primary);
+  --border: oklch(0.32 0.05 262);
+  --input: oklch(0.255 0.05 262);
+  --ring: var(--primary-glow);
+
+  --gradient-primary: linear-gradient(135deg, var(--primary), var(--primary-glow));
+  --shadow-elegant: 0 10px 30px -10px color-mix(in oklab, var(--primary) 45%, transparent);
+  --shadow-glow: 0 0 40px color-mix(in oklab, var(--primary-glow) 25%, transparent);
 }
 
 .dark { color-scheme: dark; }
@@ -97,9 +102,13 @@
 
 @layer components {
   .glass-card {
-    background: linear-gradient(180deg, color-mix(in oklab, var(--surface) 96%, white 4%), var(--surface));
-    border: 1px solid var(--border);
+    background: linear-gradient(180deg,
+      color-mix(in oklab, var(--surface) 78%, transparent),
+      color-mix(in oklab, var(--surface) 88%, transparent));
+    border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
     border-radius: var(--radius-2xl);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
   }
   .stat-pill {
     display: inline-flex; align-items: center; gap: 0.25rem;
@@ -107,7 +116,7 @@
     font-size: 0.7rem; font-weight: 600;
   }
   .scanning-shimmer {
-    background: linear-gradient(110deg, transparent 35%, color-mix(in oklab, var(--primary) 35%, transparent) 50%, transparent 65%);
+    background: linear-gradient(110deg, transparent 35%, color-mix(in oklab, var(--primary-glow) 40%, transparent) 50%, transparent 65%);
     background-size: 200% 100%;
     animation: shimmer 1.6s linear infinite;
   }
@@ -122,3 +131,19 @@
 /* Hide scrollbar on horizontal scrollers */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
+
+/* Liquid Metal shader canvas — sits behind everything */
+.liquid-metal-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  pointer-events: none;
+  /* Static fallback for SSR + reduced-motion */
+  background:
+    radial-gradient(60% 50% at 20% 10%, color-mix(in oklab, var(--primary) 35%, transparent), transparent 70%),
+    radial-gradient(70% 60% at 90% 100%, color-mix(in oklab, var(--primary-glow) 28%, transparent), transparent 70%),
+    var(--background);
+}
+@media (prefers-reduced-motion: reduce) {
+  .liquid-metal-bg canvas { display: none; }
+}

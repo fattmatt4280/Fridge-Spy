@@ -23,6 +23,7 @@ import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as FaqRouteImport } from './routes/faq'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as AlertsRouteImport } from './routes/alerts'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AddRouteImport } from './routes/add'
@@ -102,6 +103,11 @@ const FaqRoute = FaqRouteImport.update({
   path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AlertsRoute = AlertsRouteImport.update({
   id: '/alerts',
   path: '/alerts',
@@ -151,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/add': typeof AddRoute
   '/admin': typeof AdminRoute
   '/alerts': typeof AlertsRoute
+  '/app': typeof AppRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
   '/how-it-works': typeof HowItWorksRoute
@@ -175,6 +182,7 @@ export interface FileRoutesByTo {
   '/add': typeof AddRoute
   '/admin': typeof AdminRoute
   '/alerts': typeof AlertsRoute
+  '/app': typeof AppRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
   '/how-it-works': typeof HowItWorksRoute
@@ -200,6 +208,7 @@ export interface FileRoutesById {
   '/add': typeof AddRoute
   '/admin': typeof AdminRoute
   '/alerts': typeof AlertsRoute
+  '/app': typeof AppRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
   '/how-it-works': typeof HowItWorksRoute
@@ -226,6 +235,7 @@ export interface FileRouteTypes {
     | '/add'
     | '/admin'
     | '/alerts'
+    | '/app'
     | '/faq'
     | '/features'
     | '/how-it-works'
@@ -250,6 +260,7 @@ export interface FileRouteTypes {
     | '/add'
     | '/admin'
     | '/alerts'
+    | '/app'
     | '/faq'
     | '/features'
     | '/how-it-works'
@@ -274,6 +285,7 @@ export interface FileRouteTypes {
     | '/add'
     | '/admin'
     | '/alerts'
+    | '/app'
     | '/faq'
     | '/features'
     | '/how-it-works'
@@ -299,6 +311,7 @@ export interface RootRouteChildren {
   AddRoute: typeof AddRoute
   AdminRoute: typeof AdminRoute
   AlertsRoute: typeof AlertsRoute
+  AppRoute: typeof AppRoute
   FaqRoute: typeof FaqRoute
   FeaturesRoute: typeof FeaturesRoute
   HowItWorksRoute: typeof HowItWorksRoute
@@ -417,6 +430,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/alerts': {
       id: '/alerts'
       path: '/alerts'
@@ -483,6 +503,7 @@ const rootRouteChildren: RootRouteChildren = {
   AddRoute: AddRoute,
   AdminRoute: AdminRoute,
   AlertsRoute: AlertsRoute,
+  AppRoute: AppRoute,
   FaqRoute: FaqRoute,
   FeaturesRoute: FeaturesRoute,
   HowItWorksRoute: HowItWorksRoute,

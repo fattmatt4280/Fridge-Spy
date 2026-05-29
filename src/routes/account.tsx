@@ -122,7 +122,7 @@ function AccountPage() {
       <PaymentTestModeBanner />
       <div className="px-4 pt-[max(env(safe-area-inset-top),1rem)]">
         <header className="flex items-center gap-2 py-3">
-          <Link to="/" className="rounded-full p-2 text-muted-foreground hover:text-foreground hover:bg-surface" aria-label="Back">
+          <Link to="/app" className="rounded-full p-2 text-muted-foreground hover:text-foreground hover:bg-surface" aria-label="Back">
             <ChevronLeft size={22} />
           </Link>
           <h1 className="text-lg font-bold">Account</h1>
@@ -178,7 +178,7 @@ function AccountPage() {
             </button>
           ) : !subscription ? (
             <Link
-              to="/"
+              to="/pricing"
               className="mt-4 block w-full rounded-xl bg-primary py-3 text-center text-sm font-bold text-primary-foreground"
             >
               Upgrade to Pro
@@ -223,7 +223,7 @@ function AccountPage() {
                 Label scanning is a Pro feature. Pro includes 100 scans per billing cycle, then $1 per additional 100.
               </div>
               <Link
-                to="/"
+                to="/pricing"
                 className="mt-3 block w-full rounded-xl bg-primary py-3 text-center text-sm font-bold text-primary-foreground"
               >
                 Upgrade to Pro

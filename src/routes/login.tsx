@@ -55,8 +55,8 @@ function LoginPage() {
   return (
     <div className="min-h-screen px-6 pt-[max(env(safe-area-inset-top),3rem)]">
       <div className="mx-auto max-w-sm">
-        <div className="flex justify-center"><Logo size="lg" /></div>
-        <h1 className="mt-4 text-center text-2xl font-extrabold tracking-tight">Sign in to FridgeSpy</h1>
+        <div className="flex justify-center pt-4"><Logo size="2xl" animated /></div>
+        <h1 className="mt-6 text-center text-3xl font-extrabold tracking-tight">Sign in to FridgeSpy</h1>
         <p className="mt-3 text-center text-sm text-muted-foreground">Know what's in your kitchen. Always.</p>
 
         <form onSubmit={onSubmit} className="mt-10 space-y-3">

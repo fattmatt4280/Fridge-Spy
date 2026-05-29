@@ -22,7 +22,7 @@ export function usePaddleCheckout() {
         discountCode: opts.discountCode || undefined,
         settings: {
           displayMode: "overlay",
-          successUrl: opts.successUrl || `${window.location.origin}/?checkout=success`,
+          successUrl: opts.successUrl || `${window.location.origin}/app?checkout=success`,
           allowLogout: false,
           variant: "one-page",
         },

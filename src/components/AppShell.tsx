@@ -78,8 +78,10 @@ export function AppShell({ children }: { children: ReactNode }) {
     );
   }
 
+  const widthClass = isPublic && !user ? "max-w-6xl" : "max-w-md";
+
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-background pb-24">
+    <div className={`mx-auto min-h-screen ${widthClass} bg-background pb-24`}>
       <PaymentTestModeBanner />
       <main>{children}</main>
       {!isPublic && user && <BottomNav />}

@@ -12,7 +12,7 @@
 
 ## Pages
 
-- [Home](https://fridgespy.com/): Overview of FridgeSpy — what's in your kitchen, expiring soon, recent activity.
+- [Home](https://fridgespy.com/): Marketing landing page — what FridgeSpy is, how it works, key features, pricing, and FAQ at a glance.
 - [Features](https://fridgespy.com/features): AI receipt scanning, fridge photo scanning, expiry alerts, recipes from inventory, household sharing, waste score.
 - [How it works](https://fridgespy.com/how-it-works): 4-step walkthrough — add items, get alerts, cook from what you have, see your waste score.
 - [Pricing](https://fridgespy.com/pricing): Free tier plus Pro at $4.99/month, $49.99/year, or $79 Lifetime.

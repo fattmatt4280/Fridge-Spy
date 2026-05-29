@@ -59,11 +59,11 @@ function Onboarding() {
     } catch {}
   }
 
-  const finish = async (dest: "/login" | "/") => {
+  const finish = async (dest: "/login" | "/app") => {
     await savePrefs();
     try {
       localStorage.setItem(ONBOARD_KEY, "1");
-      if (dest === "/") localStorage.setItem("fridgespy.guest", "1");
+      if (dest === "/app") localStorage.setItem("fridgespy.guest", "1");
     } catch {}
     navigate({ to: dest, replace: true });
   };
@@ -106,7 +106,7 @@ function Onboarding() {
             Create Account
           </button>
           <button
-            onClick={() => finish("/")}
+            onClick={() => finish("/app")}
             className="w-full rounded-xl border border-border bg-surface py-4 text-base font-semibold text-foreground transition active:scale-[0.99]"
           >
             Try as Guest

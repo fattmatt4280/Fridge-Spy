@@ -81,7 +81,7 @@ export const listDiscounts = createServerFn({ method: "GET" })
 export const archiveDiscount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { environment: PaddleEnv; discountId: string }) =>
-    z.object({ environment: envSchema, discountId: z.string().min(1).max(64) }).parse(data),
+    z.object({ environment: envSchema, discountId: z.string().min(1).max(64).regex(/^[A-Za-z0-9_-]+$/) }).parse(data),
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);

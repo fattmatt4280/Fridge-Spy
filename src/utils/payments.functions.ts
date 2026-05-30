@@ -6,8 +6,12 @@ import { gatewayFetch, getPaddleClient, type PaddleEnv } from "@/lib/paddle.serv
 const envSchema = z.enum(["sandbox", "live"]);
 
 export const resolvePaddlePrice = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: { priceId: string; environment: PaddleEnv }) =>
-    z.object({ priceId: z.string().min(1).max(64), environment: envSchema }).parse(data),
+    z.object({
+      priceId: z.string().min(1).max(64).regex(/^[A-Za-z0-9_-]+$/),
+      environment: envSchema,
+    }).parse(data),
   )
   .handler(async ({ data }) => {
     const response = await gatewayFetch(

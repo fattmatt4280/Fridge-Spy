@@ -87,9 +87,6 @@ function RecipesPage() {
         else other.push({ name: i.name });
       }
       const res = await genFn({ data: { expiring, other } });
-      await supabase.from("activity_log").insert({
-        user_id: user!.id, kind: "recipe-gen", message: "Generated recipes",
-      });
       qc.invalidateQueries({ queryKey: ["recipes-today"] });
       return res;
     },

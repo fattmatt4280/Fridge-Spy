@@ -210,5 +210,12 @@ Return ONLY a JSON array of ${count} recipe${count === 1 ? "" : "s"}, no other t
     });
     const text = json?.content?.[0]?.text ?? "[]";
     const recipes = extractJSON<any[]>(text);
+    // Server-side activity log so quota enforcement can't be bypassed by
+    // calling the server function directly without the client-side insert.
+    await supabase.from("activity_log").insert({
+      user_id: userId,
+      kind: "recipe-gen",
+      message: "Generated recipes",
+    });
     return { recipes: Array.isArray(recipes) ? recipes : [] };
   });

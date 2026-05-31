@@ -97,18 +97,22 @@ function ItemDetailPage() {
   });
   const toShopping = useMutation({
     mutationFn: async () => {
-      if (!user || !item) return;
+      if (!user || !item) throw new Error("Item unavailable");
       const { error } = await supabase.from("shopping_list").insert({
         user_id: user.id,
         name: item.name,
         category: item.category ?? "Other",
         quantity: item.quantity ?? 1,
-        unit: item.unit ?? "each",
+        unit: item.unit ?? "unit",
         source: "detail",
       });
       if (error) throw error;
     },
-    onSuccess: () => toast.success("🛒 Added to shopping list"),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["shopping"] });
+      toast.success("🛒 Added to shopping list");
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Couldn't add to shopping list"),
   });
 
   const similar = useMemo(() => {

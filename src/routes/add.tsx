@@ -88,28 +88,31 @@ function AddPage() {
         gate.open("item-cap");
         throw new Error("Free tier limit reached");
       }
-      const { error } = await supabase.from("items").insert({
-        user_id: user.id,
-        name: name.trim(),
-        brand: brand || null,
-        category: category || null,
-        emoji,
-        quantity,
-        unit,
-        location,
-        expiry_date: expiry || null,
-        notes: notes || null,
-        image_url: imageUrl ?? null,
-        barcode: barcode || null,
+      const res = await addFn({
+        data: {
+          name: name.trim(),
+          brand: brand || null,
+          category: category || null,
+          emoji,
+          quantity,
+          unit,
+          location,
+          expiry_date: expiry || null,
+          notes: notes || null,
+          image_url: imageUrl ?? null,
+          barcode: barcode || null,
+          low_stock_at: lowStockAt.trim() === "" ? null : Number(lowStockAt),
+        },
       });
-      if (error) throw error;
-      await supabase.from("activity_log").insert({
-        user_id: user.id, kind: "add", message: `Added ${name}`,
-      });
+      if ((res as any)?.error === "item_cap") {
+        gate.open("item-cap");
+        throw new Error("Free tier limit reached");
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["items"] });
       qc.invalidateQueries({ queryKey: ["activity"] });
+      qc.invalidateQueries({ queryKey: ["usage"] });
       toast.success("Item added");
       navigate({ to: "/inventory" });
     },

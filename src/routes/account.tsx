@@ -14,6 +14,7 @@ import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { useScanQuota } from "@/hooks/useScanQuota";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { CuisinePicker, DietaryEditor, EMPTY_PROFILE, type CookingProfile } from "@/components/CookingProfileEditor";
+import { UsageStatsCard } from "@/components/UsageStatsCard";
 
 export const Route = createFileRoute("/account")({
   head: () => ({
@@ -232,7 +233,10 @@ function AccountPage() {
           )}
         </section>
 
+        <UsageStatsCard />
+
         <CookingProfileSection userId={user?.id} />
+
 
 
 

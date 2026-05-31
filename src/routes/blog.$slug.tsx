@@ -126,7 +126,7 @@ function BlogPost() {
         />
 
         <div className="mt-10 flex flex-wrap gap-2">
-          {post.tags.map((t) => (
+          {post.tags.map((t: string) => (
             <span
               key={t}
               className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-semibold text-muted-foreground"

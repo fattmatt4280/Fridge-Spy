@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { PublicFooter } from "@/components/PublicFooter";
+import { PublicHeader } from "@/components/PublicHeader";
 import { getAllPosts } from "@/content/posts";
 
 const BASE = "https://fridgespy.com";
@@ -62,6 +63,7 @@ function BlogIndex() {
   const posts = getAllPosts();
   return (
     <div className="min-h-screen px-5 pb-8 pt-[max(env(safe-area-inset-top),1.5rem)]">
+      <PublicHeader />
       <article className="mx-auto max-w-2xl">
         <header className="text-center">
           <span className="inline-block rounded-full bg-primary/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-primary">

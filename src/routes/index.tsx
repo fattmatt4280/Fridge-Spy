@@ -113,6 +113,7 @@ function LandingPage() {
             <Link to="/how-it-works" className="hover:text-foreground">How it works</Link>
             <Link to="/pricing" className="hover:text-foreground">Pricing</Link>
             <Link to="/faq" className="hover:text-foreground">FAQ</Link>
+            <Link to="/blog" className="hover:text-foreground">Blog</Link>
           </nav>
           <Link to="/login" className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20">
             Sign in

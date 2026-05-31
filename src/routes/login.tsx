@@ -66,7 +66,7 @@ function LoginPage() {
       setLoading(false);
     }
   }
-  }
+
 
   return (
     <div className="min-h-screen px-6 pt-[max(env(safe-area-inset-top),3rem)]">

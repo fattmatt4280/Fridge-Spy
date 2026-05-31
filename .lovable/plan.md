@@ -1,93 +1,79 @@
-## Plan: Public marketing home at `/`, app moves to `/app`
+# Tracking & Quantities — Optimization Plan
 
-### Goal
-Turn `fridgespy.com` into a real, indexable landing page for cold traffic and AI crawlers, while keeping the authenticated dashboard one click away for existing users.
-
----
-
-### 1. Routing changes
-
-**Move the current authenticated home to `/app`:**
-- Rename `src/routes/index.tsx` → `src/routes/app.tsx` (same component, route string `"/app"`).
-- All internal navigation that currently sends users "home" (BottomNav, post-login `navigate({ to: "/" })`, post-onboarding redirect, AppShell guest fallback, etc.) updates to `/app`.
-- `BottomNav` "Home" tab points to `/app`.
-
-**Create a new public `src/routes/index.tsx`** that renders the marketing landing (details below).
-
-**AppShell guard updates (`src/components/AppShell.tsx`):**
-- Add `/` to the `PUBLIC` set (so it's reachable without auth).
-- Add a small effect: if the user is authenticated and lands on `/`, redirect to `/app`. Guests stay on `/`.
-- BottomNav still hidden on public routes (already correct).
-
-**Login flow:**
-- After successful sign-in / sign-up, `navigate({ to: "/app" })`.
-- Login page's "logo click" / brand link goes to `/` (public home), not `/app`.
+Goal: make how we track item quantities, recipe cook-downs, and free/Pro usage quotas more accurate, consistent, and harder to game — without changing the visual design.
 
 ---
 
-### 2. New landing page (`src/routes/index.tsx`)
+## 1. Inventory quantities (items table)
 
-Single scrollable public page using the existing Liquid Metal background, Royal Blue tokens, and animated Logo. Sections (in order):
+Today: `quantity numeric, unit text default 'unit'`, +/- buttons step by whole numbers, and `markRecipeCooked` decrements by `quantity` then deletes at ≤ 0. No partial usage, no unit normalization, no low-stock concept.
 
-1. **Hero** — Large animated `<Logo size="2xl" animated />`, H1 tagline ("Know what's in your kitchen. Always."), 1-line subhead, primary CTA "Get started free" → `/login`, secondary "See how it works" → `/how-it-works`. Subtle trust line (e.g. "Free to start · No credit card").
-2. **How it works (3 steps)** — Snap receipt → Track freshness → Cook tonight. Icon + short copy per step. Mirrors `/how-it-works` at a glance; "See full walkthrough" link.
-3. **Feature highlights (6 cards)** — Receipt scanning, Fridge vision scan, Expiry alerts, AI recipes from what you have, FridgeSpy Score, Cook streaks. Each card: icon, short title, 1-sentence benefit. Pulled from existing `/features` content; "Explore all features" link.
-4. **Pricing teaser** — Free vs Pro one-liner with "From $4.99/mo" and CTA → `/pricing`.
-5. **FAQ teaser** — 3 highest-intent Q&As (collapsible), "Read all FAQs" → `/faq`.
-6. **Final CTA band** — "Start cutting food waste tonight" + Sign up button.
-7. **PublicFooter** — Already exists, reused as-is.
+Changes:
+- **Normalized units**: introduce a small `unit` enum on the client (`unit`, `g`, `kg`, `ml`, `l`, `oz`, `lb`) and a `toBase(qty, unit)` helper in `src/lib/units.ts`. Stored values stay user-friendly; conversions happen only when needed (cooked, recipes, low-stock).
+- **Partial usage controls in `inventory.tsx`**: long-press (or a "…" affordance) on +/- opens a small popover with `¼ / ½ / ¾ / custom`. Adjust mutation already exists; we just pass non-integer qty.
+- **Low-stock flag**: add `low_stock_at numeric null` per item (optional threshold). Show a subtle "Low" pill when `quantity <= low_stock_at`. Auto-suggest adding it to shopping list (we already have `toShopping`).
+- **Item history**: piggyback on `activity_log` with `kind = 'item-adjust'` whenever quantity changes by > 0.5 of a unit, so the home score + audit trail get richer signal without a new table.
 
-All copy stays on-brand with the existing public pages — no new claims, no new product features.
+## 2. Recipe cook-down (`markRecipeCooked`)
 
----
+Today: matches by `ilike(name)`, picks the soonest-expiring single match, decrements by the recipe's `used.quantity`. Misses on plurals ("tomato" vs "tomatoes"), ignores units, can over-decrement.
 
-### 3. SEO & metadata
+Changes:
+- **Fuzzy + normalized matching**: lowercase, singularize, strip parenthetical notes before `ilike`. Fall back to a trigram-style `% ` match if exact `ilike` returns nothing.
+- **Unit-aware decrement**: if both the recipe ingredient and the stored item carry a unit, convert through `toBase` before subtracting; otherwise treat as "uses 1 unit" and warn.
+- **Multi-row drain**: if one matching row can't cover the recipe quantity, walk additional matches (still ordered by expiry) until satisfied — soonest-expiring goes first, which is the whole point of FridgeSpy.
+- **Confirmation step** (UI only, recipes page): before calling the server fn, show the user the proposed deductions so they can uncheck items they didn't actually use. Server fn signature is unchanged.
 
-`src/routes/index.tsx` `head()`:
-- `title`: "FridgeSpy — Know what's in your kitchen. Always."
-- `description`: keyword-rich (kitchen inventory app, receipt scanning, expiry alerts, AI recipes, reduce food waste).
-- `og:title`, `og:description`, `og:url` (`https://fridgespy.com/`), `og:type: website`.
-- `canonical` → `https://fridgespy.com/`.
-- JSON-LD: keep the existing `WebSite`, `Organization`, and `SoftwareApplication` blocks (currently on the dashboard `index.tsx` — they belong on the public home, not the app). Add an `ItemList` of primary sub-pages (Features, How it works, Pricing, FAQ, About) for richer AI crawl.
+## 3. Usage quotas (free vs Pro)
 
-`src/routes/app.tsx` `head()`:
-- Title "Your Kitchen — FridgeSpy", `robots: noindex` (private dashboard shouldn't be indexed).
-- Drop the marketing JSON-LD (moved to `/`).
+We have three different "quota" surfaces today:
+- `FREE_ITEM_CAP = 25` enforced client-side in `usePremium` via a `count(*)` on items.
+- `FREE_RECIPE_PER_DAY = 3` enforced via `activity_log` `count(*)` filtered by `kind = 'recipe-gen'`.
+- `scan_usage` table + atomic `increment_scan_usage` RPC — the gold standard, Pro-only.
 
-`public/sitemap.xml.ts` & `public/llms.txt`:
-- Confirm `/` is listed (it already is). Remove `/app` from sitemap and llms.txt (private).
-- Bump `lastmod` for `/`.
+Inconsistencies: item cap and recipe cap are client-trusted and re-counted on every render; nothing stops a determined client from bypassing them.
 
----
+Changes:
+- **Move recipe/day enforcement server-side**: wrap the existing recipe-gen server fn (in `claude.functions.ts`) so it reads today's `recipe-gen` count for the user, rejects with `{ error: 'recipe_daily' }` for free users at the cap, and logs the activity inside the same handler. Client `useUpgradeGate('recipe-daily')` still drives the modal.
+- **Move item-cap enforcement server-side**: add a new `addItem` server fn (or guard inside the existing add path) that for non-premium users runs `count(*)` and rejects past 25. Client UI keeps its optimistic counter for snappy feedback.
+- **Unify quota shape**: a single `getUsage()` server fn that returns `{ items: {used, cap}, recipesToday: {used, cap}, scans: {used, included, bonus} }`. `usePremium` and `useScanQuota` both consume it. Keeps one query key (`['usage']`) instead of three.
+- **Pro quotas are unlimited** but we still track `used` so the `/account` page can show "127 items, 14 recipes this week, 8 scans this period" — useful retention surface and groundwork for future tier limits.
 
-### 4. Out of scope (not touching)
-- No backend, auth, database, or business-logic changes.
-- No new content pages — `/features`, `/how-it-works`, `/faq`, `/about`, `/pricing` stay as-is.
-- No design-token or Liquid Metal changes; the new page reuses the existing theme.
-- No analytics, no A/B testing scaffolding.
+## 4. Activity log hygiene
+
+`activity_log` is append-only by design (per project memory). We're about to write more often (`item-adjust`, more `cooked`). Add a server-side prune job idea (not built now — just noted): nightly delete rows older than 90 days via service role; doesn't affect the streak window (60 days).
 
 ---
 
-### Files
+## Technical notes
 
-**Renamed**
-- `src/routes/index.tsx` → `src/routes/app.tsx` (component becomes the dashboard at `/app`, with `noindex` head and marketing JSON-LD removed)
+**Files touched**
+- new: `src/lib/units.ts` (pure conversion helpers, no deps)
+- new: `src/lib/usage.functions.ts` (`getUsage`, `addItem`, plus moves `recipe-gen` counting into the existing recipe server fn)
+- edit: `src/lib/cooking.functions.ts` (fuzzy match, unit-aware, multi-row drain)
+- edit: `src/hooks/usePremium.ts` (consume unified `getUsage`)
+- edit: `src/hooks/useScanQuota.ts` (consume unified `getUsage`)
+- edit: `src/routes/inventory.tsx` (partial-qty popover, Low pill)
+- edit: `src/routes/add.tsx` (optional `low_stock_at` input)
+- edit: `src/routes/recipes.tsx` (cook confirmation modal)
+- edit: `src/components/HomeScoreCard.tsx` (use unified usage where convenient)
 
-**Created**
-- `src/routes/index.tsx` (new public landing)
+**Migration** (single migration, reviewable as one diff)
+- `ALTER TABLE public.items ADD COLUMN low_stock_at numeric NULL;`
+- No other schema changes needed — `quantity numeric` already supports fractions, `unit text` already free-form.
 
-**Edited**
-- `src/components/AppShell.tsx` — add `/` to PUBLIC, redirect authed users `/` → `/app`
-- `src/components/BottomNav.tsx` — Home tab → `/app`
-- `src/routes/login.tsx` — post-auth redirect → `/app`; logo link → `/`
-- `src/routes/onboarding.tsx` — completion redirect → `/app` (if it currently sends to `/`)
-- `src/routes/sitemap[.]xml.ts` — drop `/app`, ensure `/` present
-- `public/llms.txt` — same cleanup
-- `src/routeTree.gen.ts` — regenerated automatically by Vite plugin
+**No new tables, no RLS changes.** Quota logic stays in server fns using `requireSupabaseAuth` (RLS-respecting) except where we already use `supabaseAdmin` for `scan_usage`.
 
-### Verification
-- Logged-out visitor at `/` sees the landing page; can navigate to all public pages.
-- Logged-in visitor at `/` auto-redirects to `/app`.
-- Logged-out visitor at `/app` redirects to `/login`.
-- Sign-in lands on `/app`; BottomNav Home tab returns there.
-- View-source on `/` shows new title, description, OG tags, and JSON-LD.
+**Out of scope** (call out for later): household sharing of quotas, weekly waste report email, true OCR-based unit parsing on receipts.
+
+---
+
+## Suggested rollout order
+
+1. Migration: add `low_stock_at`.
+2. Server: `usage.functions.ts` (unified quota) + move recipe/day + item-cap enforcement.
+3. Client: swap `usePremium` / `useScanQuota` to unified hook; verify no regression in existing modals.
+4. `markRecipeCooked` rewrite + recipes-page confirmation step.
+5. Inventory partial-qty popover + Low pill.
+
+Each step is independently shippable.

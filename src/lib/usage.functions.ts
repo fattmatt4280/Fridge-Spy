@@ -147,3 +147,35 @@ export const addItem = createServerFn({ method: "POST" })
 
     return { ok: true as const };
   });
+
+/** Last 7 days of activity counts, bucketed by UTC day. Used by Pro stats card. */
+export const getUsageHistory = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase } = context;
+    const since = new Date();
+    since.setUTCHours(0, 0, 0, 0);
+    since.setUTCDate(since.getUTCDate() - 6);
+
+    const { data } = await supabase
+      .from("activity_log")
+      .select("created_at, kind")
+      .gte("created_at", since.toISOString());
+
+    const days: { day: string; total: number; cooked: number; added: number }[] = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(since);
+      d.setUTCDate(since.getUTCDate() + i);
+      days.push({ day: d.toISOString().slice(0, 10), total: 0, cooked: 0, added: 0 });
+    }
+    const index = new Map(days.map((d, i) => [d.day, i]));
+    for (const row of data ?? []) {
+      const key = new Date(row.created_at).toISOString().slice(0, 10);
+      const i = index.get(key);
+      if (i == null) continue;
+      days[i].total++;
+      if (row.kind === "cooked" || row.kind === "recipe-gen") days[i].cooked++;
+      if (row.kind === "add" || row.kind === "receipt" || row.kind === "fridge-scan") days[i].added++;
+    }
+    return { days };
+  });

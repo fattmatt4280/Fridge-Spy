@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Receipt, Camera, Bell, ChefHat, Gauge, Flame, ArrowRight, ChevronDown, Sparkles } from "lucide-react";
-import { Logo } from "@/components/ui-fs/Logo";
+import { PublicHeader } from "@/components/PublicHeader";
 import { PublicFooter } from "@/components/PublicFooter";
 
 export const Route = createFileRoute("/")({

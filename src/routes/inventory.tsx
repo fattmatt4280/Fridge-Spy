@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { categoryEmoji, daysUntil, expiryColorClass, expiryLabel, expiryStatus } from "@/lib/expiry";
 import { toast } from "sonner";
 import { EmptyState, SkeletonRow } from "@/components/EmptyState";
+import { QuantityPopover } from "@/components/QuantityPopover";
 
 type Location = "all" | "fridge" | "freezer" | "pantry" | "counter";
 type SortKey = "expiry" | "name" | "category" | "location";
@@ -227,7 +228,18 @@ function InventoryPage() {
                 <div className="flex items-center gap-1">
                   <button onClick={() => adjust.mutate({ id: item.id, qty: Math.max(0, Number(item.quantity) - 1) })}
                     className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background/40 hover:border-primary"><Minus size={14}/></button>
-                  <span className="w-10 text-center text-sm font-bold tabular-nums">{item.quantity}</span>
+                  <QuantityPopover
+                    qty={Number(item.quantity)}
+                    unit={item.unit}
+                    onSet={(next) => adjust.mutate({ id: item.id, qty: next })}
+                  >
+                    <button
+                      className="w-10 rounded-md py-0.5 text-center text-sm font-bold tabular-nums hover:bg-background/40"
+                      aria-label="Adjust by fraction"
+                    >
+                      {item.quantity}
+                    </button>
+                  </QuantityPopover>
                   <button onClick={() => adjust.mutate({ id: item.id, qty: Number(item.quantity) + 1 })}
                     className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background/40 hover:border-primary"><Plus size={14}/></button>
                 </div>

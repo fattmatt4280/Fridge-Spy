@@ -14,6 +14,8 @@ export function PublicFooter() {
         <span aria-hidden="true">·</span>
         <Link to="/faq" className="hover:text-foreground">FAQ</Link>
         <span aria-hidden="true">·</span>
+        <Link to="/blog" className="hover:text-foreground">Blog</Link>
+        <span aria-hidden="true">·</span>
         <Link to="/about" className="hover:text-foreground">About</Link>
         <span aria-hidden="true">·</span>
         <Link to="/privacy" className="hover:text-foreground">Privacy</Link>

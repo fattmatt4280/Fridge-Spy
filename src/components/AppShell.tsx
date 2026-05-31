@@ -26,7 +26,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       return;
     }
     const guest = typeof window !== "undefined" && localStorage.getItem("fridgespy.guest") === "1";
-    if (!user && !guest && !PUBLIC.has(path)) {
+    if (!user && !guest && !isPublicPath(path)) {
       navigate({ to: "/login", replace: true });
     }
   }, [user, loading, path, navigate]);
@@ -70,7 +70,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, search]);
 
-  const isPublic = PUBLIC.has(path);
+  const isPublic = isPublicPath(path);
 
   if (loading) {
     return (

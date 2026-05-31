@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Camera, Receipt, Barcode, ArrowLeft } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { lookupBarcode, searchByName, type OFFProduct } from "@/lib/openfoodfacts";
 import { categoryEmoji, isoDateInDays, suggestExpiryDays } from "@/lib/expiry";
@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { usePremium, useUpgradeGate } from "@/hooks/usePremium";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { ScanExpiryButton } from "@/components/ScanExpiryButton";
+import { addItem } from "@/lib/usage.functions";
 
 export const Route = createFileRoute("/add")({
   head: () => ({
@@ -31,6 +32,7 @@ function AddPage() {
   const qc = useQueryClient();
   const { isPremium, isPremiumLoading, itemsLeft } = usePremium();
   const gate = useUpgradeGate();
+  const addFn = useServerFn(addItem);
   const [tab, setTab] = useState<"manual" | "barcode">("manual");
 
   // Manual / search state
@@ -42,6 +44,7 @@ function AddPage() {
   const [unit, setUnit] = useState("unit");
   const [location, setLocation] = useState<"fridge"|"freezer"|"pantry"|"counter">("fridge");
   const [expiry, setExpiry] = useState(isoDateInDays(suggestExpiryDays(null, null, "fridge")));
+  const [lowStockAt, setLowStockAt] = useState<string>("");
   const [notes, setNotes] = useState("");
   const [imageUrl, setImageUrl] = useState<string | undefined>();
   const [barcode, setBarcode] = useState("");
@@ -85,28 +88,31 @@ function AddPage() {
         gate.open("item-cap");
         throw new Error("Free tier limit reached");
       }
-      const { error } = await supabase.from("items").insert({
-        user_id: user.id,
-        name: name.trim(),
-        brand: brand || null,
-        category: category || null,
-        emoji,
-        quantity,
-        unit,
-        location,
-        expiry_date: expiry || null,
-        notes: notes || null,
-        image_url: imageUrl ?? null,
-        barcode: barcode || null,
+      const res = await addFn({
+        data: {
+          name: name.trim(),
+          brand: brand || null,
+          category: category || null,
+          emoji,
+          quantity,
+          unit,
+          location,
+          expiry_date: expiry || null,
+          notes: notes || null,
+          image_url: imageUrl ?? null,
+          barcode: barcode || null,
+          low_stock_at: lowStockAt.trim() === "" ? null : Number(lowStockAt),
+        },
       });
-      if (error) throw error;
-      await supabase.from("activity_log").insert({
-        user_id: user.id, kind: "add", message: `Added ${name}`,
-      });
+      if ((res as any)?.error === "item_cap") {
+        gate.open("item-cap");
+        throw new Error("Free tier limit reached");
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["items"] });
       qc.invalidateQueries({ queryKey: ["activity"] });
+      qc.invalidateQueries({ queryKey: ["usage"] });
       toast.success("Item added");
       navigate({ to: "/inventory" });
     },
@@ -225,6 +231,15 @@ function AddPage() {
             return `✨ Fresh for ~${days} days based on ${location}`;
           })() : "Type it in, or scan the printed best-by date on the package."}
         </p>
+      </Field>
+      <Field label={`Low-stock alert (optional, ${unit})`}>
+        <input
+          type="number" min={0} step="0.1" inputMode="decimal"
+          value={lowStockAt}
+          onChange={e => setLowStockAt(e.target.value)}
+          placeholder="e.g. 1 — warn me when stock drops to this"
+          className="input"
+        />
       </Field>
       <Field label="Notes"><textarea value={notes} onChange={e=>setNotes(e.target.value)} rows={2} className="input"/></Field>
 

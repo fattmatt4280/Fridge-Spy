@@ -216,6 +216,9 @@ function InventoryPage() {
                   </div>
                   <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
                     <span className="rounded-full bg-background/50 px-2 py-0.5 capitalize">{item.location}</span>
+                    {item.low_stock_at != null && Number(item.quantity) <= Number(item.low_stock_at) && (
+                      <span className="rounded-full bg-warning/15 px-2 py-0.5 font-bold text-warning">Low</span>
+                    )}
                     {item.brand && <span className="truncate">{item.brand}</span>}
                   </div>
                 </div>

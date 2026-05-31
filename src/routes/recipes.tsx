@@ -87,7 +87,7 @@ function RecipesPage() {
         else other.push({ name: i.name });
       }
       const res = await genFn({ data: { expiring, other } });
-      qc.invalidateQueries({ queryKey: ["recipes-today"] });
+      qc.invalidateQueries({ queryKey: ["usage"] });
       return res;
     },
     onSuccess: (res) => {
@@ -275,7 +275,7 @@ function RecipesPage() {
               await cookedFn({ data: { recipeTitle: cookSheet.title, used } });
               toast.success(`Nice! ${cookSheet.title} logged.`);
               qc.invalidateQueries({ queryKey: ["items"] });
-              qc.invalidateQueries({ queryKey: ["item-count"] });
+              qc.invalidateQueries({ queryKey: ["usage"] });
               qc.invalidateQueries({ queryKey: ["activity"] });
               qc.invalidateQueries({ queryKey: ["cooked-streak"] });
               setCookSheet(null);

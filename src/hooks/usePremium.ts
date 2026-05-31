@@ -1,59 +1,35 @@
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getUsage } from "@/lib/usage.functions";
 import { useAuth } from "@/hooks/useAuth";
 import { FREE_ITEM_CAP, FREE_RECIPE_PER_DAY, type LimitReason } from "@/lib/limits";
 
+/** Single unified usage query. Backs both usePremium and useScanQuota. */
+function useUsageQuery() {
+  const { user } = useAuth();
+  const fn = useServerFn(getUsage);
+  return useQuery({
+    queryKey: ["usage", user?.id],
+    enabled: !!user,
+    staleTime: 30_000,
+    queryFn: () => fn(),
+  });
+}
+
 export function usePremium() {
   const { user } = useAuth();
+  const { data, isLoading, isFetching } = useUsageQuery();
 
-  const { data: profile, isLoading: profileLoading, isFetching: profileFetching } = useQuery({
-    queryKey: ["profile", user?.id],
-    enabled: !!user,
-    staleTime: 60_000,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("premium_user, display_name")
-        .eq("user_id", user!.id)
-        .maybeSingle();
-      return data;
-    },
-  });
-
-  const { data: itemCount = 0 } = useQuery({
-    queryKey: ["item-count", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const { count } = await supabase
-        .from("items")
-        .select("*", { count: "exact", head: true });
-      return count ?? 0;
-    },
-  });
-
-  const { data: recipesToday = 0 } = useQuery({
-    queryKey: ["recipes-today", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const since = new Date();
-      since.setHours(0, 0, 0, 0);
-      const { count } = await supabase
-        .from("activity_log")
-        .select("*", { count: "exact", head: true })
-        .eq("kind", "recipe-gen")
-        .gte("created_at", since.toISOString());
-      return count ?? 0;
-    },
-  });
-
-  const isPremium = !!profile?.premium_user;
+  const isPremium = !!data?.isPremium;
+  const itemCount = data?.items.used ?? 0;
+  const recipesToday = data?.recipesToday.used ?? 0;
   const itemsLeft = isPremium ? Infinity : Math.max(0, FREE_ITEM_CAP - itemCount);
   const recipesLeft = isPremium ? Infinity : Math.max(0, FREE_RECIPE_PER_DAY - recipesToday);
 
   return {
     isPremium,
-    isPremiumLoading: !!user && (profileLoading || (profile === undefined && profileFetching)),
+    isPremiumLoading: !!user && (isLoading || (data === undefined && isFetching)),
     itemCount,
     itemsLeft,
     recipesToday,
@@ -68,3 +44,6 @@ export function useUpgradeGate() {
   const close = useCallback(() => setReason(null), []);
   return { reason, open, close };
 }
+
+// Re-export so useScanQuota can share the exact same query (same key, one fetch).
+export { useUsageQuery };

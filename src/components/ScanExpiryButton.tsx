@@ -70,7 +70,7 @@ export function ScanExpiryButton({ onDate, className = "" }: {
           return;
         }
       } else if (res.ok) {
-        qc.invalidateQueries({ queryKey: ["scan-quota"] });
+        qc.invalidateQueries({ queryKey: ["usage"] });
         if (res.expiry_date && /^\d{4}-\d{2}-\d{2}$/.test(res.expiry_date)) {
           onDate(res.expiry_date);
           toast.success(`Found ${res.kind?.replace("_", " ") ?? "date"}: ${res.expiry_date}${res.raw ? ` ("${res.raw}")` : ""}`);

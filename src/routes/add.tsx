@@ -232,6 +232,15 @@ function AddPage() {
           })() : "Type it in, or scan the printed best-by date on the package."}
         </p>
       </Field>
+      <Field label={`Low-stock alert (optional, ${unit})`}>
+        <input
+          type="number" min={0} step="0.1" inputMode="decimal"
+          value={lowStockAt}
+          onChange={e => setLowStockAt(e.target.value)}
+          placeholder="e.g. 1 — warn me when stock drops to this"
+          className="input"
+        />
+      </Field>
       <Field label="Notes"><textarea value={notes} onChange={e=>setNotes(e.target.value)} rows={2} className="input"/></Field>
 
       <button

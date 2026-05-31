@@ -7,7 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { BottomNav } from "@/components/BottomNav";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
-const PUBLIC = new Set(["/", "/login", "/onboarding", "/pricing", "/privacy", "/terms", "/features", "/how-it-works", "/faq", "/about"]);
+const PUBLIC_PREFIXES = ["/blog"];
+const PUBLIC = new Set(["/", "/login", "/onboarding", "/pricing", "/privacy", "/terms", "/features", "/how-it-works", "/faq", "/about", "/blog"]);
+const isPublicPath = (p: string) => PUBLIC.has(p) || PUBLIC_PREFIXES.some(pre => p.startsWith(pre + "/"));
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();

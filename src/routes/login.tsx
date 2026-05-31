@@ -50,7 +50,10 @@ function LoginPage() {
       toast.error(err.message ?? "Authentication failed");
     } finally {
       setLoading(false);
+    }
   }
+
+
 
   async function onGoogle() {
     setLoading(true);

@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Camera, Receipt, Barcode, ArrowLeft } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { lookupBarcode, searchByName, type OFFProduct } from "@/lib/openfoodfacts";
 import { categoryEmoji, isoDateInDays, suggestExpiryDays } from "@/lib/expiry";
@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { usePremium, useUpgradeGate } from "@/hooks/usePremium";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { ScanExpiryButton } from "@/components/ScanExpiryButton";
+import { addItem } from "@/lib/usage.functions";
 
 export const Route = createFileRoute("/add")({
   head: () => ({

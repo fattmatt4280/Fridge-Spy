@@ -99,30 +99,6 @@ function LoginPage() {
           </button>
         </form>
 
-        <form onSubmit={onSubmit} className="mt-10 space-y-3">
-          {mode === "signup" && (
-            <Field label="Name">
-              <input value={name} onChange={e => setName(e.target.value)} placeholder="Your name"
-                className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-base outline-none placeholder:text-muted-foreground focus:border-primary" />
-            </Field>
-          )}
-          <Field label="Email">
-            <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com"
-              className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-base outline-none placeholder:text-muted-foreground focus:border-primary" />
-          </Field>
-          <Field label="Password">
-            <input type="password" required minLength={6} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
-              className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-base outline-none placeholder:text-muted-foreground focus:border-primary" />
-          </Field>
-          <button
-            disabled={loading}
-            type="submit"
-            className="mt-2 w-full rounded-xl bg-primary py-3.5 text-base font-bold text-primary-foreground shadow-lg shadow-primary/20 transition active:scale-[0.99] disabled:opacity-60"
-          >
-            {loading ? "..." : mode === "signin" ? "Sign in" : "Create account"}
-          </button>
-        </form>
-
         <div className="my-5 flex items-center gap-3">
           <div className="h-px flex-1 bg-border" />
           <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">or</span>

@@ -104,7 +104,7 @@ function ItemDetailPage() {
         category: item.category ?? "Other",
         quantity: item.quantity ?? 1,
         unit: item.unit ?? "unit",
-        source: "detail",
+        source: "manual",
       });
       if (error) throw error;
     },

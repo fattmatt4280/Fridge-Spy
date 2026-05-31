@@ -50,7 +50,22 @@ function LoginPage() {
       toast.error(err.message ?? "Authentication failed");
     } finally {
       setLoading(false);
+  }
+
+  async function onGoogle() {
+    setLoading(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) throw new Error(result.error.message ?? "Google sign-in failed");
+      if (result.redirected) return;
+      navigate({ to: "/app", replace: true });
+    } catch (err: any) {
+      toast.error(err.message ?? "Google sign-in failed");
+      setLoading(false);
     }
+  }
   }
 
   return (

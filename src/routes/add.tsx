@@ -32,6 +32,7 @@ function AddPage() {
   const qc = useQueryClient();
   const { isPremium, isPremiumLoading, itemsLeft } = usePremium();
   const gate = useUpgradeGate();
+  const addFn = useServerFn(addItem);
   const [tab, setTab] = useState<"manual" | "barcode">("manual");
 
   // Manual / search state
@@ -43,6 +44,7 @@ function AddPage() {
   const [unit, setUnit] = useState("unit");
   const [location, setLocation] = useState<"fridge"|"freezer"|"pantry"|"counter">("fridge");
   const [expiry, setExpiry] = useState(isoDateInDays(suggestExpiryDays(null, null, "fridge")));
+  const [lowStockAt, setLowStockAt] = useState<string>("");
   const [notes, setNotes] = useState("");
   const [imageUrl, setImageUrl] = useState<string | undefined>();
   const [barcode, setBarcode] = useState("");

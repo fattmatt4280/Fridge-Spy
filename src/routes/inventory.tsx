@@ -114,14 +114,23 @@ function InventoryPage() {
 
   const toShopping = useMutation({
     mutationFn: async (item: any) => {
+      if (!user) throw new Error("Please sign in first");
       const { error } = await supabase.from("shopping_list").insert({
-        user_id: user!.id,
-        name: item.name, quantity: item.quantity, unit: item.unit,
-        category: item.category ?? "Other", source: "swipe",
+        user_id: user.id,
+        name: item.name,
+        quantity: item.quantity ?? 1,
+        unit: item.unit ?? "unit",
+        category: item.category ?? "Other",
+        source: "swipe",
       });
       if (error) throw error;
+      return item.name as string;
     },
-    onSuccess: () => toast.success("Added to shopping list"),
+    onSuccess: (name) => {
+      qc.invalidateQueries({ queryKey: ["shopping"] });
+      toast.success(`🛒 Added ${name} to shopping list`);
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Couldn't add to shopping list"),
   });
 
   return (

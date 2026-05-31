@@ -94,6 +94,7 @@ function BlogPost() {
 
   return (
     <div className="min-h-screen px-5 pb-8 pt-[max(env(safe-area-inset-top),1.5rem)]">
+      <PublicHeader />
       <article className="mx-auto max-w-2xl">
         <nav className="mb-6 text-xs text-muted-foreground" aria-label="Breadcrumb">
           <Link to="/" className="hover:text-foreground">Home</Link>

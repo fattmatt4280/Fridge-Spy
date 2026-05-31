@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Receipt, Camera, Bell, ChefHat, Gauge, Flame, ArrowRight, ChevronDown, Sparkles } from "lucide-react";
 import { Logo } from "@/components/ui-fs/Logo";
+import { PublicHeader } from "@/components/PublicHeader";
 import { PublicFooter } from "@/components/PublicFooter";
 
 export const Route = createFileRoute("/")({
@@ -104,22 +105,7 @@ const TEASER_FAQS = [
 function LandingPage() {
   return (
     <div className="min-h-screen">
-      {/* Top nav */}
-      <header className="px-5 pt-[max(env(safe-area-inset-top),1.25rem)]">
-        <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <Link to="/" aria-label="FridgeSpy home"><Logo /></Link>
-          <nav className="hidden items-center gap-5 text-sm font-medium text-muted-foreground sm:flex">
-            <Link to="/features" className="hover:text-foreground">Features</Link>
-            <Link to="/how-it-works" className="hover:text-foreground">How it works</Link>
-            <Link to="/pricing" className="hover:text-foreground">Pricing</Link>
-            <Link to="/faq" className="hover:text-foreground">FAQ</Link>
-            <Link to="/blog" className="hover:text-foreground">Blog</Link>
-          </nav>
-          <Link to="/login" className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20">
-            Sign in
-          </Link>
-        </div>
-      </header>
+      <PublicHeader />
 
       {/* Hero */}
       <section className="px-5 pt-10 sm:pt-16">

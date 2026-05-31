@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { PublicFooter } from "@/components/PublicFooter";
+import { PublicHeader } from "@/components/PublicHeader";
 import { getAllPosts } from "@/content/posts";
 
 const BASE = "https://fridgespy.com";

@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Receipt, Camera, Bell, ChefHat, Gauge, Flame, ArrowRight, ChevronDown, Sparkles } from "lucide-react";
+import { Logo } from "@/components/ui-fs/Logo";
 import { PublicHeader } from "@/components/PublicHeader";
 import { PublicFooter } from "@/components/PublicFooter";
 
@@ -100,10 +101,6 @@ const TEASER_FAQS = [
   { q: "Do I have to type in every item?", a: "No. Most users only ever snap a receipt or scan their fridge — FridgeSpy adds the items for you. You can also barcode-scan or add manually if you prefer." },
   { q: "Do you sell my data?", a: "Never. Your kitchen data is yours. We don't run ads, we don't sell data, and you can export or delete your account at any time." },
 ];
-
-import { PublicHeader } from "@/components/PublicHeader";
-
-// ... existing imports above ...
 
 function LandingPage() {
   return (

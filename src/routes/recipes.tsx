@@ -126,7 +126,7 @@ function RecipesPage() {
   const addMissing = useMutation({
     mutationFn: async (names: string[]) => {
       if (!user || !names.length) return 0;
-      const rows = names.map(n => ({ user_id: user.id, name: n, source: "recipe" as const }));
+      const rows = names.map(n => ({ user_id: user.id, name: n, source: "auto" as const }));
       const { error } = await supabase.from("shopping_list").insert(rows);
       if (error) throw error;
       return rows.length;

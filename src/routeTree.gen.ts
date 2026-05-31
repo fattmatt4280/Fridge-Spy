@@ -23,6 +23,7 @@ import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as FaqRouteImport } from './routes/faq'
+import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AlertsRouteImport } from './routes/alerts'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -31,6 +32,7 @@ import { Route as AccountRouteImport } from './routes/account'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ItemIdRouteImport } from './routes/item.$id'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
 const TermsRoute = TermsRouteImport.update({
@@ -103,6 +105,11 @@ const FaqRoute = FaqRouteImport.update({
   path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogRoute = BlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRoute = AppRouteImport.update({
   id: '/app',
   path: '/app',
@@ -143,6 +150,11 @@ const ItemIdRoute = ItemIdRouteImport.update({
   path: '/item/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => BlogRoute,
+} as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -158,6 +170,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/alerts': typeof AlertsRoute
   '/app': typeof AppRoute
+  '/blog': typeof BlogRouteWithChildren
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
   '/how-it-works': typeof HowItWorksRoute
@@ -172,6 +185,7 @@ export interface FileRoutesByFullPath {
   '/shopping': typeof ShoppingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/item/$id': typeof ItemIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -183,6 +197,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/alerts': typeof AlertsRoute
   '/app': typeof AppRoute
+  '/blog': typeof BlogRouteWithChildren
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
   '/how-it-works': typeof HowItWorksRoute
@@ -197,6 +212,7 @@ export interface FileRoutesByTo {
   '/shopping': typeof ShoppingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/item/$id': typeof ItemIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -209,6 +225,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/alerts': typeof AlertsRoute
   '/app': typeof AppRoute
+  '/blog': typeof BlogRouteWithChildren
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
   '/how-it-works': typeof HowItWorksRoute
@@ -223,6 +240,7 @@ export interface FileRoutesById {
   '/shopping': typeof ShoppingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/item/$id': typeof ItemIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -236,6 +254,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/alerts'
     | '/app'
+    | '/blog'
     | '/faq'
     | '/features'
     | '/how-it-works'
@@ -250,6 +269,7 @@ export interface FileRouteTypes {
     | '/shopping'
     | '/sitemap.xml'
     | '/terms'
+    | '/blog/$slug'
     | '/item/$id'
     | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -261,6 +281,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/alerts'
     | '/app'
+    | '/blog'
     | '/faq'
     | '/features'
     | '/how-it-works'
@@ -275,6 +296,7 @@ export interface FileRouteTypes {
     | '/shopping'
     | '/sitemap.xml'
     | '/terms'
+    | '/blog/$slug'
     | '/item/$id'
     | '/api/public/payments/webhook'
   id:
@@ -286,6 +308,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/alerts'
     | '/app'
+    | '/blog'
     | '/faq'
     | '/features'
     | '/how-it-works'
@@ -300,6 +323,7 @@ export interface FileRouteTypes {
     | '/shopping'
     | '/sitemap.xml'
     | '/terms'
+    | '/blog/$slug'
     | '/item/$id'
     | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
@@ -312,6 +336,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   AlertsRoute: typeof AlertsRoute
   AppRoute: typeof AppRoute
+  BlogRoute: typeof BlogRouteWithChildren
   FaqRoute: typeof FaqRoute
   FeaturesRoute: typeof FeaturesRoute
   HowItWorksRoute: typeof HowItWorksRoute
@@ -430,6 +455,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog': {
+      id: '/blog'
+      path: '/blog'
+      fullPath: '/blog'
+      preLoaderRoute: typeof BlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app': {
       id: '/app'
       path: '/app'
@@ -486,6 +518,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ItemIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof BlogRoute
+    }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
       path: '/api/public/payments/webhook'
@@ -496,6 +535,16 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface BlogRouteChildren {
+  BlogSlugRoute: typeof BlogSlugRoute
+}
+
+const BlogRouteChildren: BlogRouteChildren = {
+  BlogSlugRoute: BlogSlugRoute,
+}
+
+const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
@@ -504,6 +553,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   AlertsRoute: AlertsRoute,
   AppRoute: AppRoute,
+  BlogRoute: BlogRouteWithChildren,
   FaqRoute: FaqRoute,
   FeaturesRoute: FeaturesRoute,
   HowItWorksRoute: HowItWorksRoute,

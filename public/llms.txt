@@ -17,6 +17,7 @@
 - [How it works](https://fridgespy.com/how-it-works): 4-step walkthrough — add items, get alerts, cook from what you have, see your waste score.
 - [Pricing](https://fridgespy.com/pricing): Free tier plus Pro at $4.99/month, $49.99/year, or $79 Lifetime.
 - [FAQ](https://fridgespy.com/faq): Common questions about scanning, pricing, privacy, sharing, offline use.
+- [Blog](https://fridgespy.com/blog): Guides on reducing food waste, AI receipt scanning, meal prep, and cooking from your existing inventory.
 - [About](https://fridgespy.com/about): The team and mission behind FridgeSpy.
 - [Sign in](https://fridgespy.com/login): Create a FridgeSpy account or sign in.
 - [Privacy Policy](https://fridgespy.com/privacy): How FridgeSpy collects, uses, and protects your data.
